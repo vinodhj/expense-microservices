@@ -3,31 +3,26 @@ import { defineConfig as defineGatewayConfig } from "@graphql-hive/gateway";
 import dotenv from "dotenv";
 dotenv.config();
 
-console.log("User Service URL:", process.env.LOCAL_USER_SERVICE_URL);
-console.log("Project Token:", process.env.PROJECT_TOKEN);
-
 let USER_SERVICE_URL = process.env.LOCAL_USER_SERVICE_URL;
-let CORS_ORIGIN = process.env.LOCAL_CORS_ORIGIN;
+let PROXY_ORIGIN = process.env.LOCAL_PROXY_ORIGIN;
 if (process.env.IS_ENV === "PROD") {
   USER_SERVICE_URL = process.env.PROD_USER_SERVICE_URL;
-  CORS_ORIGIN = process.env.PROD_CORS_ORIGIN;
+  PROXY_ORIGIN = process.env.PROD_PROXY_ORIGIN;
 }
 
 export const composeConfig = defineComposeConfig({
   subgraphs: [
     {
       sourceHandler: loadGraphQLHTTPSubgraph("UserService", {
-        endpoint: USER_SERVICE_URL || "",
+        endpoint: USER_SERVICE_URL ?? "",
         method: "POST",
         credentials: "include",
         schemaHeaders: {
-          Origin: CORS_ORIGIN,
           "X-Project-Token": process.env.PROJECT_TOKEN,
         },
         operationHeaders: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
           Authorization: "{context.headers.Authorization}",
+          "X-Project-Token": "{context.headers.X-Project-Token}",
         },
         retry: 3,
         timeout: 10000,
@@ -37,7 +32,6 @@ export const composeConfig = defineComposeConfig({
 });
 
 export const gatewayConfig = defineGatewayConfig({
-  // additionalResolvers: [additionalResolvers$0],
-  cors: { origin: CORS_ORIGIN, credentials: true },
+  cors: { credentials: true },
   plugins: (ctx) => [],
 });

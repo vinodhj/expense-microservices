@@ -127,12 +127,7 @@ export const supergraphSdl = /* GraphQL */ `
             kind: "http"
             subgraph: "UserService"
             location: "http://localhost:8501/graphql"
-            headers: [
-              ["Content-Type", "application/json"]
-              ["Accept", "application/json"]
-              ["Authorization", "{context.headers.Authorization}"]
-              ["X-Project-Token", "cydms6PjLxpuqQ"]
-            ]
+            headers: [["Authorization", "{context.headers.Authorization}"], ["X-Project-Token", "{context.headers.X-Project-Token}"]]
             options: { method: "POST", credentials: "include", retry: 3, timeout: 10000 }
           }
         ]

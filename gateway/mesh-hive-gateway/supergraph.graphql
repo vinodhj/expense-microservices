@@ -151,7 +151,7 @@ type AdminKvAsset @join__type(graph: USER_SERVICE)  {
 }
 
 type Query @extraSchemaDefinitionDirective(
-  directives: {transport: [{kind: "http", subgraph: "UserService", location: "http://localhost:8501/graphql", headers: [["Content-Type", "application/json"], ["Accept", "application/json"], ["Authorization", "{context.headers.Authorization}"], ["X-Project-Token", "cydms6PjLxpuqQ"]], options: {method: "POST", credentials: "include", retry: 3, timeout: 10000}}]}
+  directives: {transport: [{kind: "http", subgraph: "UserService", location: "http://localhost:8501/graphql", headers: [["Authorization", "{context.headers.Authorization}"], ["X-Project-Token", "{context.headers.X-Project-Token}"]], options: {method: "POST", credentials: "include", retry: 3, timeout: 10000}}]}
 ) @join__type(graph: USER_SERVICE)  {
   userByEmail(input: UserByEmailInput!) : UserResponse
   userByfield(input: UserByFieldInput!) : [UserResponse]
