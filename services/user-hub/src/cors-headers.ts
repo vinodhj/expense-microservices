@@ -8,6 +8,8 @@ const escapeRegExp = (str: string): string => {
 // Helper to determine the proper CORS origin based on the request with subdomain matching
 export const getCorsOrigin = (request: Request, allowedOrigins: string[]): string | null => {
   const requestOrigin = request.headers.get("Origin");
+  console.log("requestOrigin", requestOrigin);
+  console.log("headers", request.headers);
   if (!requestOrigin) {
     return null;
   }

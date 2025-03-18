@@ -5,6 +5,7 @@ export enum Role {
   User = "USER",
 }
 
+// TODO: add more fields -> created_by, updated_by, phone, address, city, state, country, zipcode.
 export const user = sqliteTable("user", {
   id: text("id").primaryKey(), // nano id
   name: text("name").notNull(),

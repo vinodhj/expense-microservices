@@ -17,12 +17,12 @@ export class UserDataSource {
   async users() {
     try {
       return this.db.select().from(user).execute();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Unexpected error:", error);
       throw new GraphQLError("Failed to get users", {
         extensions: {
           code: "INTERNAL_SERVER_ERROR",
-          error,
+          error: error.message ? error.message : error,
         },
       });
     }
@@ -31,12 +31,12 @@ export class UserDataSource {
   async userByEmail(input: UserByEmailInput) {
     try {
       return this.db.select().from(user).where(eq(user.email, input.email)).get();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Unexpected error:", error);
       throw new GraphQLError("Failed to get user", {
         extensions: {
           code: "INTERNAL_SERVER_ERROR",
-          error,
+          error: error.message ? error.message : error,
         },
       });
     }
@@ -46,12 +46,12 @@ export class UserDataSource {
     try {
       const condition = input.field === "name" ? like(user[input.field], input.value) : eq(user[input.field], input.value);
       return this.db.select().from(user).where(condition).execute();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Unexpected error:", error);
       throw new GraphQLError("Failed to get user", {
         extensions: {
           code: "INTERNAL_SERVER_ERROR",
-          error,
+          error: error.message ? error.message : error,
         },
       });
     }
@@ -78,12 +78,12 @@ export class UserDataSource {
           ...userWithoutPassword,
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error("Unexpected error:", error);
       throw new GraphQLError("Failed to edit user", {
         extensions: {
           code: "INTERNAL_SERVER_ERROR",
-          error,
+          error: error.message ? error.message : error,
         },
       });
     }
@@ -103,12 +103,12 @@ export class UserDataSource {
         console.error("Delete operation failed:", deleted);
         return false;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Unexpected error:", error);
       throw new GraphQLError("Failed to delete user", {
         extensions: {
           code: "INTERNAL_SERVER_ERROR",
-          error,
+          error: error.message ? error.message : error,
         },
       });
     }
