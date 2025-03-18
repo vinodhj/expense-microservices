@@ -59,17 +59,20 @@ export class UserDataSource {
 
   async editUser(input: EditUserInput) {
     try {
-      const result = await this.db
-        .update(user)
-        .set({
-          name: input.name,
-          email: input.email,
-          ...(input.role && { role: input.role === "ADMIN" ? Role.Admin : Role.User }),
-          updated_at: new Date(),
-        })
-        .where(eq(user.id, input.id))
-        .returning()
-        .get();
+      const updateData = {
+        name: input.name,
+        email: input.email,
+        phone: input.phone,
+        ...(input.role && { role: input.role === "ADMIN" ? Role.Admin : Role.User }),
+        ...(input.address && { address: input.address }),
+        ...(input.city && { city: input.city }),
+        ...(input.state && { state: input.state }),
+        ...(input.country && { country: input.country }),
+        ...(input.zipcode && { zipcode: input.zipcode }),
+        updated_at: new Date(),
+        updated_by: this.sessionUser?.name ?? "ADMIN",
+      };
+      const result = await this.db.update(user).set(updateData).where(eq(user.id, input.id)).returning().get();
 
       const { password, ...userWithoutPassword } = result;
       return {

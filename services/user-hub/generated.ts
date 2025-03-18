@@ -36,10 +36,16 @@ export type ChangePasswordInput = {
 };
 
 export enum ColumnName {
+  Address = "address",
+  City = "city",
+  Country = "country",
   Email = "email",
   Id = "id",
   Name = "name",
+  Phone = "phone",
   Role = "role",
+  State = "state",
+  Zipcode = "zipcode",
 }
 
 export type DeleteUserInput = {
@@ -47,10 +53,16 @@ export type DeleteUserInput = {
 };
 
 export type EditUserInput = {
+  address?: InputMaybe<Scalars["String"]["input"]>;
+  city?: InputMaybe<Scalars["String"]["input"]>;
+  country?: InputMaybe<Scalars["String"]["input"]>;
   email: Scalars["String"]["input"];
   id: Scalars["ID"]["input"];
   name: Scalars["String"]["input"];
+  phone: Scalars["String"]["input"];
   role?: InputMaybe<Role>;
+  state?: InputMaybe<Scalars["String"]["input"]>;
+  zipcode?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type EditUserResponse = {
@@ -132,10 +144,16 @@ export enum Role {
 }
 
 export type SignUpInput = {
+  address?: InputMaybe<Scalars["String"]["input"]>;
+  city?: InputMaybe<Scalars["String"]["input"]>;
+  country?: InputMaybe<Scalars["String"]["input"]>;
   email: Scalars["String"]["input"];
   name: Scalars["String"]["input"];
   password: Scalars["String"]["input"];
+  phone: Scalars["String"]["input"];
   role?: InputMaybe<Role>;
+  state?: InputMaybe<Scalars["String"]["input"]>;
+  zipcode?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type SignUpResponse = {
@@ -146,13 +164,21 @@ export type SignUpResponse = {
 
 export type User = {
   __typename?: "User";
+  address?: Maybe<Scalars["String"]["output"]>;
+  city?: Maybe<Scalars["String"]["output"]>;
+  country?: Maybe<Scalars["String"]["output"]>;
   created_at: Scalars["DateTime"]["output"];
+  created_by: Scalars["String"]["output"];
   email: Scalars["String"]["output"];
   id: Scalars["ID"]["output"];
   name: Scalars["String"]["output"];
   password: Scalars["String"]["output"];
+  phone: Scalars["String"]["output"];
   role: Role;
+  state?: Maybe<Scalars["String"]["output"]>;
   updated_at: Scalars["DateTime"]["output"];
+  updated_by: Scalars["String"]["output"];
+  zipcode?: Maybe<Scalars["String"]["output"]>;
 };
 
 export type UserByEmailInput = {
@@ -166,20 +192,34 @@ export type UserByFieldInput = {
 
 export type UserResponse = {
   __typename?: "UserResponse";
+  address?: Maybe<Scalars["String"]["output"]>;
+  city?: Maybe<Scalars["String"]["output"]>;
+  country?: Maybe<Scalars["String"]["output"]>;
   created_at: Scalars["DateTime"]["output"];
+  created_by: Scalars["String"]["output"];
   email: Scalars["String"]["output"];
   id: Scalars["ID"]["output"];
   name: Scalars["String"]["output"];
+  phone: Scalars["String"]["output"];
   role: Role;
+  state?: Maybe<Scalars["String"]["output"]>;
   updated_at: Scalars["DateTime"]["output"];
+  updated_by: Scalars["String"]["output"];
+  zipcode?: Maybe<Scalars["String"]["output"]>;
 };
 
 export type UserSuccessResponse = {
   __typename?: "UserSuccessResponse";
+  address?: Maybe<Scalars["String"]["output"]>;
+  city?: Maybe<Scalars["String"]["output"]>;
+  country?: Maybe<Scalars["String"]["output"]>;
   email: Scalars["String"]["output"];
   id: Scalars["ID"]["output"];
   name: Scalars["String"]["output"];
+  phone: Scalars["String"]["output"];
   role: Role;
+  state?: Maybe<Scalars["String"]["output"]>;
+  zipcode?: Maybe<Scalars["String"]["output"]>;
 };
 
 export type ResolverTypeWrapper<T> = Promise<T> | T;
@@ -379,13 +419,21 @@ export type SignUpResponseResolvers<
 };
 
 export type UserResolvers<ContextType = any, ParentType extends ResolversParentTypes["User"] = ResolversParentTypes["User"]> = {
+  address?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  city?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  country?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   created_at?: Resolver<ResolversTypes["DateTime"], ParentType, ContextType>;
+  created_by?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   email?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   password?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  phone?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   role?: Resolver<ResolversTypes["Role"], ParentType, ContextType>;
+  state?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   updated_at?: Resolver<ResolversTypes["DateTime"], ParentType, ContextType>;
+  updated_by?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  zipcode?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -393,12 +441,20 @@ export type UserResponseResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes["UserResponse"] = ResolversParentTypes["UserResponse"],
 > = {
+  address?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  city?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  country?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   created_at?: Resolver<ResolversTypes["DateTime"], ParentType, ContextType>;
+  created_by?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   email?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  phone?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   role?: Resolver<ResolversTypes["Role"], ParentType, ContextType>;
+  state?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   updated_at?: Resolver<ResolversTypes["DateTime"], ParentType, ContextType>;
+  updated_by?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  zipcode?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -406,10 +462,16 @@ export type UserSuccessResponseResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes["UserSuccessResponse"] = ResolversParentTypes["UserSuccessResponse"],
 > = {
+  address?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  city?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  country?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   email?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  phone?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   role?: Resolver<ResolversTypes["Role"], ParentType, ContextType>;
+  state?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  zipcode?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

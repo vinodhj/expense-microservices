@@ -74,8 +74,16 @@ export const supergraphSdl = /* GraphQL */ `
     email: String!
     password: String!
     role: Role!
+    phone: String!
+    address: String
+    city: String
+    state: String
+    country: String
+    zipcode: String
     created_at: DateTime!
     updated_at: DateTime!
+    created_by: String!
+    updated_by: String!
   }
 
   type SignUpResponse @join__type(graph: USER_SERVICE) {
@@ -93,7 +101,13 @@ export const supergraphSdl = /* GraphQL */ `
     id: ID!
     name: String!
     email: String!
+    phone: String!
     role: Role!
+    address: String
+    city: String
+    state: String
+    country: String
+    zipcode: String
   }
 
   type UserResponse @join__type(graph: USER_SERVICE) {
@@ -101,8 +115,16 @@ export const supergraphSdl = /* GraphQL */ `
     name: String!
     email: String!
     role: Role!
+    phone: String!
+    address: String
+    city: String
+    state: String
+    country: String
+    zipcode: String
     created_at: DateTime!
     updated_at: DateTime!
+    created_by: String!
+    updated_by: String!
   }
 
   type EditUserResponse @join__type(graph: USER_SERVICE) {
@@ -158,14 +180,26 @@ export const supergraphSdl = /* GraphQL */ `
     id @join__enumValue(graph: USER_SERVICE)
     name @join__enumValue(graph: USER_SERVICE)
     email @join__enumValue(graph: USER_SERVICE)
+    phone @join__enumValue(graph: USER_SERVICE)
     role @join__enumValue(graph: USER_SERVICE)
+    address @join__enumValue(graph: USER_SERVICE)
+    city @join__enumValue(graph: USER_SERVICE)
+    state @join__enumValue(graph: USER_SERVICE)
+    country @join__enumValue(graph: USER_SERVICE)
+    zipcode @join__enumValue(graph: USER_SERVICE)
   }
 
   input SignUpInput @join__type(graph: USER_SERVICE) {
     name: String!
     email: String!
     password: String!
+    phone: String!
     role: Role
+    address: String
+    city: String
+    state: String
+    country: String
+    zipcode: String
   }
 
   input LoginInput @join__type(graph: USER_SERVICE) {
@@ -190,7 +224,13 @@ export const supergraphSdl = /* GraphQL */ `
     id: ID!
     name: String!
     email: String!
+    phone: String!
     role: Role
+    address: String
+    city: String
+    state: String
+    country: String
+    zipcode: String
   }
 
   input ChangePasswordInput @join__type(graph: USER_SERVICE) {
