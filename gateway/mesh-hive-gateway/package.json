@@ -1,0 +1,38 @@
+{
+  "name": "mesh-hive-gateway",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "bundle-size": "wrangler build && wrangler deploy --dry-run",
+    "dev": "(kill -9 $(lsof -t -i:8500) || true) && wrangler dev --name graphql-tools --port 8500 --inspector-port 8300",
+    "start": "wrangler dev",
+    "format": "prettier --write \"**/*.{js,ts,tsx,md,json,mts,d.ts}\" --no-error-on-unmatched-pattern",
+    "test": "vitest",
+    "cf-typegen": "wrangler types",
+    "codegen": "graphql-codegen --config codegen.ts",
+    "build-supergraph": "mesh-compose -o supergraph.graphql",
+    "hive-gateway": "npx hive-gateway supergraph",
+    "convert-supergraph": "node convert-schema.js supergraph.graphql supergraph-string.js && bun run format",
+    "dev:hive-gateway": "bun build-supergraph && bun convert-supergraph && bun dev"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.7.5",
+    "@cloudflare/workers-types": "^4.20250317.0",
+    "@parcel/watcher": "^2.5.1",
+    "dotenv": "^16.4.7",
+    "typescript": "^5.5.2",
+    "vitest": "~3.0.7",
+    "wrangler": "^4.1.0"
+  },
+  "dependencies": {
+    "@graphql-codegen/cli": "^5.0.5",
+    "@graphql-hive/gateway": "^1.12.1",
+    "@graphql-mesh/compose-cli": "^1.4.1",
+    "@graphql-mesh/graphql": "^0.104.1",
+    "@graphql-mesh/migrate-config-cli": "^1.6.1",
+    "@graphql-mesh/utils": "^0.104.1",
+    "dataloader": "^2.2.3",
+    "graphql": "^16.10.0"
+  }
+}
