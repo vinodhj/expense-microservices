@@ -16,15 +16,29 @@ export const typeDefs = gql`
     email: String!
     password: String! # hashed
     role: Role!
+    phone: String!
+    address: String
+    city: String
+    state: String
+    country: String
+    zipcode: String
     created_at: DateTime!
     updated_at: DateTime!
+    created_by: String!
+    updated_by: String!
   }
 
   input SignUpInput {
     name: String!
     email: String!
     password: String!
+    phone: String!
     role: Role
+    address: String
+    city: String
+    state: String
+    country: String
+    zipcode: String
   }
 
   type SignUpResponse {
@@ -47,7 +61,13 @@ export const typeDefs = gql`
     id: ID!
     name: String!
     email: String!
+    phone: String!
     role: Role!
+    address: String
+    city: String
+    state: String
+    country: String
+    zipcode: String
   }
 
   type UserResponse {
@@ -55,8 +75,16 @@ export const typeDefs = gql`
     name: String!
     email: String!
     role: Role!
+    phone: String!
+    address: String
+    city: String
+    state: String
+    country: String
+    zipcode: String
     created_at: DateTime!
     updated_at: DateTime!
+    created_by: String!
+    updated_by: String!
   }
 
   input UserByEmailInput {
@@ -76,7 +104,13 @@ export const typeDefs = gql`
     id: ID!
     name: String!
     email: String!
+    phone: String!
     role: Role
+    address: String
+    city: String
+    state: String
+    country: String
+    zipcode: String
   }
 
   type EditUserResponse {
@@ -95,7 +129,13 @@ export const typeDefs = gql`
     id
     name
     email
+    phone
     role
+    address
+    city
+    state
+    country
+    zipcode
   }
 
   type LogoutResponse {

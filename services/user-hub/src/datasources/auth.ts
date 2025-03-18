@@ -38,8 +38,16 @@ export class AuthDataSource {
           id: nanoid(),
           name: input.name,
           email: input.email,
+          phone: input.phone,
           password: hashedPassword,
           role: input.role === "ADMIN" ? Role.Admin : Role.User,
+          address: input.address ? input.address : null,
+          city: input.city ? input.city : null,
+          state: input.state ? input.state : null,
+          country: input.country ? input.country : null,
+          zipcode: input.zipcode ? input.zipcode : null,
+          created_by: this.sessionUser?.name ?? "ADMIN", // currently admin only able to create user
+          updated_by: this.sessionUser?.name ?? "ADMIN", // currently admin only able to update user
         })
         .returning()
         .get();
