@@ -1,19 +1,40 @@
 {
   "name": "user-hub",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
+    "migrate": "./migrate.sh",
+    "generate": "graphql-codegen",
+    "migration-list": "wrangler d1 migrations list DB",
+    "migration-apply-production": "wrangler d1 migrations apply DB --remote",
+    "deploy:staging": "wrangler deploy --env staging",
+    "bundle-size": "wrangler build && wrangler deploy --dry-run",
     "deploy": "wrangler deploy",
-    "dev": "(kill -9 $(lsof -t -i:8501) || true) && wrangler dev --name user-hub --port 8501 --inspector-port 8301  --persist-to=.db-local",
-    "start": "wrangler dev",
+    "dev": "(kill -9 $(lsof -t -i:8501) || true) && wrangler dev --name user-hub --port 8501 --inspector-port 8301 --persist-to=.db-local",
     "test": "vitest",
     "cf-typegen": "wrangler types"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.7.5",
     "@cloudflare/workers-types": "^4.20250317.0",
+    "@graphql-codegen/cli": "^5.0.3",
+    "@graphql-codegen/typescript": "^4.1.2",
+    "@graphql-codegen/typescript-resolvers": "^4.4.1",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.7",
+    "dotenv": "^16.4.7",
     "typescript": "^5.5.2",
+    "vite-tsconfig-paths": "^5.1.4",
     "vitest": "~3.0.7",
     "wrangler": "^4.1.0"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "drizzle-orm": "^0.38.3",
+    "gql": "^1.1.2",
+    "graphql": "^16.10.0",
+    "graphql-yoga": "^5.10.9",
+    "jsonwebtoken": "^9.0.2",
+    "nanoid": "^5.0.9"
   }
 }
