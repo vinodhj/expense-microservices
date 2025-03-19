@@ -32,7 +32,7 @@ export interface APIs {
  */
 export const createAPIs = ({ db, env, sessionUser }: APIParams): APIs => {
   // KV Storage Service API
-  const kvStorageDataSource = new KvStorageDataSource(env.KV_CF_JWT_AUTH);
+  const kvStorageDataSource = new KvStorageDataSource(env.KV_CF_JWT_AUTH, env.EXPENSE_AUTH_EVENTS_KV);
   const kvStorageAPI = new KvStorageServiceAPI(kvStorageDataSource);
 
   // Auth Service API

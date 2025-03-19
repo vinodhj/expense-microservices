@@ -23,6 +23,10 @@ export const composeConfig = defineComposeConfig({
         operationHeaders: {
           Authorization: "{context.headers.Authorization}",
           "X-Project-Token": "{context.headers.X-Project-Token}",
+          "X-User-Id": "{context.current_session_user.id}",
+          "X-User-Role": "{context.current_session_user.role}",
+          "X-User-Email": "{context.current_session_user.email}",
+          "X-User-Name": "{context.current_session_user.name}",
         },
         retry: 3,
         timeout: 10000,

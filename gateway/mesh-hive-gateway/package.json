@@ -33,6 +33,7 @@
     "@graphql-mesh/migrate-config-cli": "^1.6.1",
     "@graphql-mesh/utils": "^0.104.1",
     "dataloader": "^2.2.3",
-    "graphql": "^16.10.0"
+    "graphql": "^16.10.0",
+    "jsonwebtoken": "^9.0.2"
   }
 }

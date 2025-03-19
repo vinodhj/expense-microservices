@@ -18,6 +18,12 @@
     },
   ],
   "minify": true,
+  "kv_namespaces": [
+    {
+      "binding": "EXPENSE_AUTH_EVENTS_KV",
+      "id": "c7d647fbdaa74dff98470e7282f1bf03",
+    },
+  ],
   /**
    * Smart Placement
    * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

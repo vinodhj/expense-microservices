@@ -1,12 +1,11 @@
 import { YogaSchemaDefinition, createYoga } from "graphql-yoga";
 import { drizzle } from "drizzle-orm/d1";
 import { schema } from "@src/schemas";
-import { verifyToken } from "@src/services/helper/jwtUtils";
 import { GraphQLError } from "graphql";
 import { addCORSHeaders } from "@src/cors-headers";
 import { Env } from "@src/index";
 import { APIs, createAPIs, SessionUserType } from "@src/services";
-import { KvStorageDataSource } from "@src/datasources/kv-storage";
+import { Role } from "db/schema/user";
 
 export interface YogaInitialContext {
   jwtSecret: string;
@@ -30,6 +29,8 @@ const validateProjectToken = (projectToken: string | null, expectedToken: string
   }
 };
 
+const getHeader = (headers: Headers, key: string): string | null => headers.get(key) ?? headers.get(key.toLowerCase());
+
 export default async function handleGraphQL(request: Request, env: Env): Promise<Response> {
   const db = drizzle(env.DB);
   const yoga = createYoga({
@@ -37,35 +38,27 @@ export default async function handleGraphQL(request: Request, env: Env): Promise
     cors: false, // manually added CORS headers in addCORSHeaders
     landingPage: false,
     graphqlEndpoint: GRAPHQL_PATH,
-    context: async () => {
-      const projectToken = request.headers.get("X-Project-Token") ?? request.headers.get("x-project-token");
-      const authorization = request.headers.get("Authorization") ?? request.headers.get("authorization");
+    context: async ({ request }) => {
+      const headers = request.headers;
+      const projectToken = getHeader(headers, "X-Project-Token");
+      const authorization = getHeader(headers, "Authorization");
+      // Extract user info from gateway headers for session
+      const userId = getHeader(headers, "X-User-Id");
+      const userRole = getHeader(headers, "X-User-Role");
+      const userEmail = getHeader(headers, "X-User-Email");
+      const userName = getHeader(headers, "X-User-Name");
+
       validateProjectToken(projectToken, env.PROJECT_TOKEN);
-
       const accessToken = getAccessToken(authorization);
-      let sessionUser = null;
 
-      if (accessToken) {
-        const kvStorageDataSource = new KvStorageDataSource(env.KV_CF_JWT_AUTH);
-        try {
-          // TODO: jwt verify func should be called on every request, though it's expensive and performance optimizations may be needed.
-          const jwtVerifyToken = await verifyToken({ token: accessToken, secret: env.JWT_SECRET, kvStorage: kvStorageDataSource });
-          sessionUser = {
-            id: jwtVerifyToken.id,
-            role: jwtVerifyToken.role,
-            email: jwtVerifyToken.email,
-            name: jwtVerifyToken.name,
-          };
-        } catch (error) {
-          console.error("Token verification failed:", error);
-          const isGraphQLError = error instanceof GraphQLError;
-          throw new GraphQLError(isGraphQLError ? error.message : "Invalid token", {
-            extensions: {
-              code: isGraphQLError ? error.extensions.code : "UNAUTHORIZED",
-              error: isGraphQLError && error.extensions?.error ? error.extensions.error : error,
-            },
-          });
-        }
+      let sessionUser: SessionUserType = null;
+      if (accessToken && userId && userRole && userEmail && userName) {
+        sessionUser = {
+          id: userId,
+          role: userRole === "ADMIN" ? Role.Admin : Role.User,
+          email: userEmail,
+          name: userName,
+        };
       }
 
       // Create service APIs

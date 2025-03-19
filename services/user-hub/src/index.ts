@@ -9,6 +9,7 @@ export interface Env {
   PROJECT_TOKEN: string;
   KV_SYNC_TOKEN: string;
   ALLOWED_ORIGINS: string;
+  EXPENSE_AUTH_EVENTS_KV: KVNamespace;
 }
 
 export default {

@@ -2,12 +2,8 @@ import { createGatewayRuntime, GatewayConfig } from "@graphql-hive/gateway-runti
 import httpTransport from "@graphql-mesh/transport-http";
 import { gatewayConfig } from "../mesh.config";
 import { supergraphSdl } from ".././supergraph-string";
-
-export interface Env {
-  USER_SERVICE_URL: string;
-  WORKER_ENV: string;
-  USER_SERVICE_WORKER: Fetcher;
-}
+import { GraphQLError } from "graphql";
+import { jwtVerifyToken } from "./jwt-verify-token";
 
 interface Fetcher {
   fetch: typeof fetch;
@@ -38,6 +34,55 @@ export default {
         supergraph: supergraphSdl,
         transports: {
           http: httpTransport,
+        },
+        genericAuth: {
+          mode: "protect-granular",
+          resolveUserFn: async (context) => {
+            // Get auth header
+            const accessToken = context.headers?.Authorization;
+            if (!accessToken) {
+              return null; // No auth token provided
+            }
+            try {
+              const jwtToken = await jwtVerifyToken({ token: accessToken, secret: env.JWT_SECRET, kvStorage: env.EXPENSE_AUTH_EVENTS_KV });
+              const user = {
+                id: jwtToken.id,
+                role: jwtToken.role,
+                email: jwtToken.email,
+                name: jwtToken.name,
+              };
+              // Explicitly add a string version to the context
+              context.current_session_user = user;
+              return user;
+            } catch (error) {
+              console.error("Token verification failed:", error);
+              const isGraphQLError = error instanceof GraphQLError;
+              throw new GraphQLError(isGraphQLError ? error.message : "Invalid token", {
+                extensions: {
+                  code: isGraphQLError ? error.extensions.code : "UNAUTHORIZED",
+                  error: isGraphQLError && error.extensions?.error ? error.extensions.error : error,
+                },
+              });
+            }
+          },
+          validateUser: ({ user, executionArgs }) => {
+            // Check if this operation requires auth
+            const publicOperations = ["login", "signUp"];
+            const operationName = executionArgs.operationName ?? "";
+            if (publicOperations.includes(operationName)) {
+              return; // Allow public operations (returning void means valid)
+            }
+            // Validate auth token
+            if (user === null) {
+              throw new GraphQLError("Authentication failed", {
+                extensions: {
+                  code: "UNAUTHORIZED",
+                  http: { status: 401 },
+                  error: { message: "Invalid token" },
+                },
+              });
+            }
+          },
         },
         fetchAPI: {
           fetch: (url, options) => {
