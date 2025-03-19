@@ -4,6 +4,7 @@ import { gatewayConfig } from "../mesh.config";
 import { supergraphSdl } from ".././supergraph-string";
 import { GraphQLError } from "graphql";
 import { jwtVerifyToken } from "./jwt-verify-token";
+import crypto from "crypto";
 
 interface Fetcher {
   fetch: typeof fetch;
@@ -38,9 +39,23 @@ export default {
         genericAuth: {
           mode: "protect-granular",
           resolveUserFn: async (context) => {
+            // Get current timestamp
+            const timestamp = Date.now().toString();
+            context.gateway_timestamp = timestamp;
+
+            // Generate a unique nonce
+            const nonce = crypto.getRandomValues(new Uint8Array(16)).reduce((str, byte) => str + byte.toString(16).padStart(2, "0"), "");
+            context.gateway_nonce = nonce;
+
             // Get auth header
             const accessToken = context.headers?.Authorization;
             if (!accessToken) {
+              // TODO : Check if this is a public operation - `public:${operationName}:${timestamp}:${nonce}`;
+              // Generate public operation signature including nonce
+              const signaturePayload = `public:${timestamp}:${nonce}`;
+              const signature = crypto.createHmac("sha256", env.GATEWAY_SECRET).update(signaturePayload).digest("hex");
+
+              context.gateway_signature = signature;
               return null; // No auth token provided
             }
             try {
@@ -53,12 +68,21 @@ export default {
               };
               // Explicitly add a string version to the context
               context.current_session_user = user;
+
+              // Generate signature based on headers and shared secret
+              const signaturePayload = `${jwtToken.id}:${jwtToken.role}:${timestamp}:${nonce}`;
+              const signature = crypto.createHmac("sha256", env.GATEWAY_SECRET).update(signaturePayload).digest("hex");
+
+              // Add signature and timestamp to context
+              context.gateway_signature = signature;
+
               return user;
             } catch (error) {
               console.error("Token verification failed:", error);
               const isGraphQLError = error instanceof GraphQLError;
               throw new GraphQLError(isGraphQLError ? error.message : "Invalid token", {
                 extensions: {
+                  status: 401,
                   code: isGraphQLError ? error.extensions.code : "UNAUTHORIZED",
                   error: isGraphQLError && error.extensions?.error ? error.extensions.error : error,
                 },

@@ -152,6 +152,9 @@ export const supergraphSdl = /* GraphQL */ `
             headers: [
               ["Authorization", "{context.headers.Authorization}"]
               ["X-Project-Token", "{context.headers.X-Project-Token}"]
+              ["X-Gateway-Nonce", "{context.gateway_nonce}"]
+              ["X-Gateway-Signature", "{context.gateway_signature}"]
+              ["X-Gateway-Timestamp", "{context.gateway_timestamp}"]
               ["X-User-Id", "{context.current_session_user.id}"]
               ["X-User-Role", "{context.current_session_user.role}"]
               ["X-User-Email", "{context.current_session_user.email}"]

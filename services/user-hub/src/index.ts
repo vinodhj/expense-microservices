@@ -2,16 +2,6 @@ import handleKVSync from "./handlers/kv-sync";
 import handleGraphQL from "./handlers/graphql";
 import { getCorsOrigin } from "./cors-headers";
 
-export interface Env {
-  DB: D1Database;
-  KV_CF_JWT_AUTH: KVNamespace;
-  JWT_SECRET: string;
-  PROJECT_TOKEN: string;
-  KV_SYNC_TOKEN: string;
-  ALLOWED_ORIGINS: string;
-  EXPENSE_AUTH_EVENTS_KV: KVNamespace;
-}
-
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
