@@ -1,28 +1,14 @@
 import handleKVSync from "./handlers/kv-sync";
 import handleGraphQL from "./handlers/graphql";
-import { getCorsOrigin } from "./cors-headers";
+import { handleCorsPreflight } from "./cors-headers";
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
-    const allowedOrigins = env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(",").map((origin) => origin.trim()) : [];
     // ✅ Handle CORS Preflight Requests (OPTIONS)
-    if (request.method.toUpperCase() === "OPTIONS") {
-      const corsOrigin = getCorsOrigin(request, allowedOrigins);
-      const headers = new Headers();
-
-      if (corsOrigin) {
-        headers.set("Access-Control-Allow-Origin", corsOrigin);
-        headers.set("Access-Control-Allow-Credentials", "true");
-      }
-
-      headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
-      headers.set(
-        "Access-Control-Allow-Headers",
-        "Content-Type, X-Project-Token, Authorization, apollographql-client-name, apollographql-client-version",
-      );
-      return new Response(null, { status: 204, headers });
+    if (request.method === "OPTIONS") {
+      return handleCorsPreflight(request, env);
     }
 
     // ✅ Handle GraphQL
