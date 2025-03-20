@@ -1,4 +1,4 @@
-import { createGatewayRuntime, GatewayConfig } from "@graphql-hive/gateway-runtime";
+import { createGatewayRuntime, GatewayConfig, ResolveUserFn, ValidateUserFn } from "@graphql-hive/gateway-runtime";
 import httpTransport from "@graphql-mesh/transport-http";
 import { gatewayConfig } from "../mesh.config";
 import { supergraphSdl } from ".././supergraph-string";
@@ -29,6 +29,79 @@ export default {
       const isDevelopment = env.WORKER_ENV === "dev";
       console.log(`Running in ${isDevelopment ? "development" : "production"} mode`);
 
+      // GenericAuth - resolveUser and validateUser functions for the gateway
+      const resolveUserFn: ResolveUserFn<any> = async (context: any) => {
+        // Get current timestamp
+        const timestamp = Date.now().toString();
+        context.gateway_timestamp = timestamp;
+
+        // Generate a unique nonce
+        const nonce = crypto.getRandomValues(new Uint8Array(16)).reduce((str, byte) => str + byte.toString(16).padStart(2, "0"), "");
+        context.gateway_nonce = nonce;
+
+        // Get auth header
+        const accessToken = context.headers?.Authorization;
+        if (!accessToken) {
+          // TODO : Check if this is a public operation - `public:${operationName}:${timestamp}:${nonce}`;
+          // Generate public operation signature including nonce
+          const signaturePayload = `public:${timestamp}:${nonce}`;
+          const signature = crypto.createHmac("sha256", env.GATEWAY_SECRET).update(signaturePayload).digest("hex");
+
+          context.gateway_signature = signature;
+          return null; // No auth token provided
+        }
+        try {
+          const jwtToken = await jwtVerifyToken({ token: accessToken, secret: env.JWT_SECRET, kvStorage: env.EXPENSE_AUTH_EVENTS_KV });
+          const user = {
+            id: jwtToken.id,
+            role: jwtToken.role,
+            email: jwtToken.email,
+            name: jwtToken.name,
+          };
+          // Explicitly add a string version to the context
+          context.current_session_user = user;
+
+          // Generate signature based on headers and shared secret
+          const signaturePayload = `${jwtToken.id}:${jwtToken.role}:${timestamp}:${nonce}`;
+          const signature = crypto.createHmac("sha256", env.GATEWAY_SECRET).update(signaturePayload).digest("hex");
+
+          // Add signature and timestamp to context
+          context.gateway_signature = signature;
+
+          return user;
+        } catch (error) {
+          console.error("Token verification failed:", error);
+          const isGraphQLError = error instanceof GraphQLError;
+          throw new GraphQLError(isGraphQLError ? error.message : "Invalid token", {
+            extensions: {
+              status: 401,
+              code: isGraphQLError ? error.extensions.code : "UNAUTHORIZED",
+              error: isGraphQLError && error.extensions?.error ? error.extensions.error : error,
+            },
+          });
+        }
+      };
+
+      const validateUser: ValidateUserFn<any> = ({ user, executionArgs }) => {
+        // Check if this operation requires auth
+        const publicOperations = ["login", "signUp"];
+        const operationName = executionArgs.operationName ?? "";
+        console.log("Operation name:", operationName);
+        if (publicOperations.includes(operationName)) {
+          return; // Allow public operations (returning void means valid)
+        }
+        // Validate auth token
+        if (user === null) {
+          throw new GraphQLError("Authentication failed", {
+            extensions: {
+              code: "UNAUTHORIZED",
+              status: 401,
+              error: { message: "Invalid token" },
+            },
+          });
+        }
+      };
+
       // Create the gateway runtime
       const gateway = createGatewayRuntime({
         ...(gatewayConfig as GatewayConfig),
@@ -38,75 +111,8 @@ export default {
         },
         genericAuth: {
           mode: "protect-granular",
-          resolveUserFn: async (context) => {
-            // Get current timestamp
-            const timestamp = Date.now().toString();
-            context.gateway_timestamp = timestamp;
-
-            // Generate a unique nonce
-            const nonce = crypto.getRandomValues(new Uint8Array(16)).reduce((str, byte) => str + byte.toString(16).padStart(2, "0"), "");
-            context.gateway_nonce = nonce;
-
-            // Get auth header
-            const accessToken = context.headers?.Authorization;
-            if (!accessToken) {
-              // TODO : Check if this is a public operation - `public:${operationName}:${timestamp}:${nonce}`;
-              // Generate public operation signature including nonce
-              const signaturePayload = `public:${timestamp}:${nonce}`;
-              const signature = crypto.createHmac("sha256", env.GATEWAY_SECRET).update(signaturePayload).digest("hex");
-
-              context.gateway_signature = signature;
-              return null; // No auth token provided
-            }
-            try {
-              const jwtToken = await jwtVerifyToken({ token: accessToken, secret: env.JWT_SECRET, kvStorage: env.EXPENSE_AUTH_EVENTS_KV });
-              const user = {
-                id: jwtToken.id,
-                role: jwtToken.role,
-                email: jwtToken.email,
-                name: jwtToken.name,
-              };
-              // Explicitly add a string version to the context
-              context.current_session_user = user;
-
-              // Generate signature based on headers and shared secret
-              const signaturePayload = `${jwtToken.id}:${jwtToken.role}:${timestamp}:${nonce}`;
-              const signature = crypto.createHmac("sha256", env.GATEWAY_SECRET).update(signaturePayload).digest("hex");
-
-              // Add signature and timestamp to context
-              context.gateway_signature = signature;
-
-              return user;
-            } catch (error) {
-              console.error("Token verification failed:", error);
-              const isGraphQLError = error instanceof GraphQLError;
-              throw new GraphQLError(isGraphQLError ? error.message : "Invalid token", {
-                extensions: {
-                  status: 401,
-                  code: isGraphQLError ? error.extensions.code : "UNAUTHORIZED",
-                  error: isGraphQLError && error.extensions?.error ? error.extensions.error : error,
-                },
-              });
-            }
-          },
-          validateUser: ({ user, executionArgs }) => {
-            // Check if this operation requires auth
-            const publicOperations = ["login", "signUp"];
-            const operationName = executionArgs.operationName ?? "";
-            if (publicOperations.includes(operationName)) {
-              return; // Allow public operations (returning void means valid)
-            }
-            // Validate auth token
-            if (user === null) {
-              throw new GraphQLError("Authentication failed", {
-                extensions: {
-                  code: "UNAUTHORIZED",
-                  http: { status: 401 },
-                  error: { message: "Invalid token" },
-                },
-              });
-            }
-          },
+          resolveUserFn,
+          validateUser,
         },
         fetchAPI: {
           fetch: (url, options) => {

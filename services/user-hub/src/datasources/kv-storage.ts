@@ -45,4 +45,15 @@ export class KvStorageDataSource {
       });
     }
   }
+
+  async nonceExists(nonce_key: string): Promise<boolean> {
+    // Check if nonce exists in KV store
+    const result = await this.kvEvents.get(nonce_key);
+    return result !== null;
+  }
+
+  async nonceStore(nonce_key: string, timestamp: string, expirationTtl: number): Promise<void> {
+    // Store nonce in KV store
+    await this.kvEvents.put(nonce_key, timestamp, { expirationTtl });
+  }
 }
