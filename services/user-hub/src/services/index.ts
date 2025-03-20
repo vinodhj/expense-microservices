@@ -3,7 +3,6 @@ import { AuthServiceAPI } from "./auth-service";
 import { UserDataSource } from "@src/datasources/user";
 import { UserServiceAPI } from "./user-service";
 import { DrizzleD1Database } from "drizzle-orm/d1";
-import { Env } from "@src/index";
 import { KvStorageServiceAPI } from "./kv-storage-service";
 import { KvStorageDataSource } from "@src/datasources/kv-storage";
 import { Role } from "db/schema/user";

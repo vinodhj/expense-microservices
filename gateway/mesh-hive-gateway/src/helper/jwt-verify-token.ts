@@ -23,8 +23,8 @@ export const jwtVerifyToken = async ({
 }): Promise<TokenPayload> => {
   try {
     const payload = jwt.verify(token, secret) as TokenPayload;
-
-    /*Retrieve the current token version from KV.
+    /* *
+     * Retrieve the current token version from KV.
      * We use the user's email as the key identifier; adjust if you have a different unique identifier.
      * Fetch the current token version for this user (default to 0 if not set)
      */
