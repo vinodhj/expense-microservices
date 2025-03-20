@@ -1,5 +1,6 @@
 import { ExecutionResult } from "graphql";
 import { YogaInitialContext } from "./graphql";
+import type { Plugin } from "@envelop/core";
 
 const NONCE_EXPIRATION_TTL = 5 * 60; // 5 minutes in seconds
 
@@ -18,3 +19,17 @@ export function createNonceStoragePlugin() {
     },
   };
 }
+
+// Plugin to log GraphQL execution time
+export const createMetricsPlugin: Plugin = {
+  onExecute() {
+    const start = Date.now();
+    return {
+      onExecuteDone({ args }) {
+        const duration = Date.now() - start;
+        const operationName = args.operationName || "anonymous";
+        console.debug(`GraphQL execution of '${operationName}' completed in ${duration}ms`);
+      },
+    };
+  },
+};

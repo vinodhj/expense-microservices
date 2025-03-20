@@ -4,7 +4,7 @@ import { schema } from "@src/schemas";
 import { addCORSHeaders } from "@src/cors-headers";
 import { APIs, createAPIs, SessionUserType } from "@src/services";
 import { Role } from "db/schema/user";
-import { createNonceStoragePlugin } from "./graphql-plugins";
+import { createMetricsPlugin, createNonceStoragePlugin } from "./graphql-plugins";
 import { SecurityMiddleware } from "./security-middleware";
 
 export interface YogaInitialContext {
@@ -36,7 +36,7 @@ export default async function handleGraphQL(request: Request, env: Env): Promise
     cors: false, // manually added CORS headers in addCORSHeaders
     landingPage: false,
     graphqlEndpoint: GRAPHQL_PATH,
-    plugins: [createNonceStoragePlugin()],
+    plugins: [createNonceStoragePlugin(), createMetricsPlugin],
     context: async ({ request }) => {
       const headers = request.headers;
       const projectToken = getHeader(headers, "X-Project-Token");
