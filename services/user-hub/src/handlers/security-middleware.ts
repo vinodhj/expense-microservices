@@ -77,9 +77,9 @@ export class SecurityMiddleware {
     const isDev = env.ENVIRONMENT === "dev";
     const matchesGatewaySignature = isDev && this.constantTimeCompare(signature, env.GATEWAY_SIGNATURE);
 
-    // This is to allow the gateway to build the supergraph without needing to sign requests in dev
+    // This is to allow the gateway to build the supergraph or codegen without needing to sign requests in dev
     if (matchesGatewaySignature) {
-      console.warn("Skipping signature verification in dev environment to allow gateway to build supergraph");
+      console.warn("Skipping signature verification in dev environment to allow gateway to build supergraph or codegen schema generation");
     } else {
       const payload = authorization ? `${userId ?? ""}:${userRole ?? ""}:${timestamp}:${nonce}` : `public:${timestamp}:${nonce}`;
       const expectedSignature = crypto.createHmac("sha256", env.GATEWAY_SECRET).update(payload).digest("hex");
