@@ -85,7 +85,7 @@ export const createAuthFunctions = (env: Env) => {
 
     // Validate auth token
     if (user === null) {
-      throw new GraphQLError("Authentication failed", {
+      throw new GraphQLError("Authentication failed for non-public operation", {
         extensions: {
           code: "UNAUTHORIZED",
           status: 401,

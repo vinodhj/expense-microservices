@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "deploy": "wrangler deploy",
+    "deploy": "bun build-supergraph && bun convert-supergraph && wrangler deploy",
     "bundle-size": "wrangler build && wrangler deploy --dry-run",
     "dev": "(kill -9 $(lsof -t -i:8500) || true) && wrangler dev --name graphql-tools --port 8500 --inspector-port 8300",
     "start": "wrangler dev",

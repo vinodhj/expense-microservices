@@ -36,6 +36,7 @@ export class SecurityMiddleware {
     const authorization = this.getHeader(headers, "Authorization");
     const userId = this.getHeader(headers, "X-User-Id");
     const userRole = this.getHeader(headers, "X-User-Role");
+    const is_schema_federation = this.getHeader(headers, "X-Schema-Federation");
     const timestamp = noncetimestamp;
 
     // 1. Check if all required headers are present
@@ -74,8 +75,11 @@ export class SecurityMiddleware {
     }
 
     // 4. Verify signature
-    const isDev = env.ENVIRONMENT === "dev";
-    const matchesGatewaySignature = isDev && this.constantTimeCompare(signature, env.GATEWAY_SIGNATURE);
+    const matchesGatewaySignature = is_schema_federation === "true" && this.constantTimeCompare(signature, env.GATEWAY_SIGNATURE);
+
+    console.log("is_schema_federation", is_schema_federation);
+    console.log("validateSchemaFederation", is_schema_federation === "true");
+    console.log("matchesGatewaySignature", matchesGatewaySignature);
 
     // This is to allow the gateway to build the supergraph or codegen without needing to sign requests in dev
     if (matchesGatewaySignature) {

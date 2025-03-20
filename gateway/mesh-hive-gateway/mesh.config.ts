@@ -34,6 +34,7 @@ export const composeConfig = defineComposeConfig({
           "X-Gateway-Timestamp": Date.now().toString(),
           "X-Gateway-Signature": process.env.GATEWAY_SIGNATURE,
           "X-Gateway-Nonce": nonce,
+          "X-Schema-Federation": "true",
         },
         operationHeaders: {
           Authorization: "{context.headers.Authorization}",
