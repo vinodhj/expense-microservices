@@ -1,33 +1,6 @@
 import { GatewayRuntime } from "@graphql-hive/gateway-runtime";
 import { initializeGateway } from "./gateway";
-
-// CORS handling
-const handleCorsPreflight = (): Response => {
-  return new Response(null, {
-    status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
-      "Access-Control-Max-Age": "86400",
-    },
-  });
-};
-
-// CORS headers middleware
-const addCorsHeaders = (response: Response): Response => {
-  // Add CORS headers to the response if they're not already present
-  if (!response.headers.has("Access-Control-Allow-Origin")) {
-    const headers = new Headers(response.headers);
-    headers.set("Access-Control-Allow-Origin", "*");
-    return new Response(response.body, {
-      status: response.status,
-      statusText: response.statusText,
-      headers,
-    });
-  }
-  return response;
-};
+import { addCorsHeaders, handleCorsPreflight } from "./helper/cors-helper";
 
 // Gateway disposal
 const disposeGateway = (gateway: GatewayRuntime<Record<string, any>>, ctx: ExecutionContext) => {
@@ -39,12 +12,6 @@ const disposeGateway = (gateway: GatewayRuntime<Record<string, any>>, ctx: Execu
 };
 
 export default {
-  /**
-   * Main request handler. Handles CORS preflight requests, initializes the gateway
-   * runtime, processes the request with the gateway, and schedules disposal of the
-   * gateway. Adds CORS headers to the response if they're not already present. If an
-   * error occurs, logs the error and returns a JSON response with error details.
-   */
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     // Handle CORS preflight
     if (request.method === "OPTIONS") return handleCorsPreflight();

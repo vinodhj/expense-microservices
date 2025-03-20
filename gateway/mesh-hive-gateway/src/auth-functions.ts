@@ -1,5 +1,5 @@
 import { ResolveUserFn, ValidateUserFn } from "@graphql-hive/gateway-runtime";
-import { jwtVerifyToken } from "./jwt-verify-token";
+import { jwtVerifyToken } from "./helper/jwt-verify-token";
 import crypto from "crypto";
 import { GraphQLError } from "graphql";
 // import { GraphQLError, DocumentNode, GraphQLSchema, getOperationAST } from "graphql";
