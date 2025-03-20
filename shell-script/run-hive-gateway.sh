@@ -1,0 +1,1 @@
+cd ./gateway/mesh-hive-gateway && bun dev:hive-gateway

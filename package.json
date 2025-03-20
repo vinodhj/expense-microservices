@@ -7,6 +7,11 @@
   "scripts": {
     "clean": "rm -rf ./node_modules",
     "clean:all": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +",
+    "dev:all": "./shell-script/run-server.sh",
+    "dev:hive-gateway": "sleep 1 && ./shell-script/run-hive-gateway.sh",
+    "ws-add-prod": "bash ./shell-script/ws-add-prod.sh",
+    "ws-remove-prod": "bash ./shell-script/ws-remove-prod.sh",
+    "test:all": "./shell-script/run-test.sh",
     "format": "prettier --write \"**/*.{ts,tsx,md,json,mts,d.ts}\" --no-error-on-unmatched-pattern",
     "prepare": "husky"
   },
