@@ -5,7 +5,7 @@ import tsconfigPath from "vite-tsconfig-paths";
 export default defineWorkersConfig(async () => {
   try {
     const { readD1Migrations } = await import("@cloudflare/vitest-pool-workers/config");
-    const migrations = await readD1Migrations(path.resolve(__dirname, "./db/migrations"));
+    // const migrations = await readD1Migrations(path.resolve(__dirname, "./db/migrations"));
 
     return {
       plugins: [tsconfigPath()],
@@ -26,9 +26,9 @@ export default defineWorkersConfig(async () => {
             wrangler: {
               configPath: "./wrangler.jsonc",
             },
-            miniflare: {
-              bindings: { TEST_MIGRATIONS: migrations },
-            },
+            // miniflare: {
+            //   bindings: { TEST_MIGRATIONS: migrations },
+            // },
           },
         },
       },
