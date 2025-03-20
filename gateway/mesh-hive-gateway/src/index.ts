@@ -14,7 +14,9 @@ const disposeGateway = (gateway: GatewayRuntime<Record<string, any>>, ctx: Execu
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     // Handle CORS preflight
-    if (request.method === "OPTIONS") return handleCorsPreflight();
+    if (request.method === "OPTIONS") {
+      return handleCorsPreflight();
+    }
 
     try {
       const isDevelopment = env.WORKER_ENV === "dev";

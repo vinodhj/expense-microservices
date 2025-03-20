@@ -2,66 +2,6 @@ import { ResolveUserFn, ValidateUserFn } from "@graphql-hive/gateway-runtime";
 import { jwtVerifyToken } from "./helper/jwt-verify-token";
 import crypto from "crypto";
 import { GraphQLError } from "graphql";
-// import { GraphQLError, DocumentNode, GraphQLSchema, getOperationAST } from "graphql";
-
-/**
- * Checks if an operation has the @public directive
- */
-// function checkIfOperationHasPublicDirective(schema: GraphQLSchema, document: DocumentNode, operationName?: string): boolean {
-//   // Get the operation from the document
-//   const operation = getOperationAST(document, operationName);
-//   if (!operation) return false;
-
-//   // Get the operation type (query, mutation, subscription)
-//   const operationType = operation.operation;
-
-//   // Get the root operation name (the first selection in the operation)
-//   if (!operation.selectionSet.selections.length) return false;
-
-//   const selections = operation.selectionSet.selections;
-//   let isPublic = false;
-
-//   // Check each selection in the operation
-//   for (const selection of selections) {
-//     if (selection.kind === "Field") {
-//       const fieldName = selection.name.value;
-
-//       // Check if this field has @public directive
-//       const rootType = getRootTypeFromSchema(schema, operationType);
-//       if (!rootType) continue;
-
-//       // Find the field definition in the schema
-//       const field = rootType.getFields()[fieldName];
-//       if (!field) continue;
-
-//       // Check if the field has @public directive
-//       const hasPublicDirective = field.astNode?.directives?.some((d) => d.name.value === "public");
-
-//       if (hasPublicDirective) {
-//         isPublic = true;
-//         break;
-//       }
-//     }
-//   }
-
-//   return isPublic;
-// }
-
-/**
- * Gets the root type from schema based on operation type
- */
-// function getRootTypeFromSchema(schema: GraphQLSchema, operationType: string) {
-//   switch (operationType) {
-//     case "query":
-//       return schema.getQueryType();
-//     case "mutation":
-//       return schema.getMutationType();
-//     case "subscription":
-//       return schema.getSubscriptionType();
-//     default:
-//       return null;
-//   }
-// }
 
 // Auth functions factory
 export const createAuthFunctions = (env: Env) => {
@@ -142,17 +82,6 @@ export const createAuthFunctions = (env: Env) => {
     if (publicOperations.includes(operationName)) {
       return; // Allow public operations (returning void means valid)
     }
-
-    // TODO
-    // Get operation details from the executionArgs
-    // const { schema, document, operationName } = executionArgs;
-
-    // // Use the schema and AST to determine if the operation has @public directive
-    // const isPublicOperation = checkIfOperationHasPublicDirective(schema, document, operationName ?? undefined);
-
-    // if (isPublicOperation) {
-    //   return; // Allow public operations
-    // }
 
     // Validate auth token
     if (user === null) {

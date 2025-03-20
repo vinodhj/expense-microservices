@@ -1,12 +1,11 @@
-import { Env } from ".";
-
 // Helper to escape regex special characters in a string
 const escapeRegExp = (str: string): string => {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 };
 
 // Helper to determine the proper CORS origin based on the request with subdomain matching
-export const getCorsOrigin = (request: Request, allowedOrigins: string[]): string | null => {
+export const getCorsOrigin = (request: Request, env: Env): string | null => {
+  const allowedOrigins = env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(",").map((origin) => origin.trim()) : [];
   const requestOrigin = request.headers.get("Origin");
   // console.log("requestOrigin", requestOrigin);
   // console.log("headers", request.headers);
@@ -32,9 +31,8 @@ export const getCorsOrigin = (request: Request, allowedOrigins: string[]): strin
 };
 
 export const addCORSHeaders = (request: Request, response: Response, env: Env): Response => {
-  const allowedOrigins = env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(",").map((origin) => origin.trim()) : [];
   const newHeaders = new Headers(response.headers);
-  const corsOrigin = getCorsOrigin(request, allowedOrigins);
+  const corsOrigin = getCorsOrigin(request, env);
 
   if (corsOrigin) {
     newHeaders.set("Access-Control-Allow-Origin", corsOrigin);
@@ -55,4 +53,22 @@ export const addCORSHeaders = (request: Request, response: Response, env: Env): 
     statusText: response.statusText,
     headers: newHeaders,
   });
+};
+
+// Handle CORS preflight request
+export const handleCorsPreflight = (request: Request, env: Env): Response => {
+  const corsOrigin = getCorsOrigin(request, env);
+  const headers = new Headers();
+
+  if (corsOrigin) {
+    headers.set("Access-Control-Allow-Origin", corsOrigin);
+    headers.set("Access-Control-Allow-Credentials", "true");
+  }
+
+  headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+  headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, X-Project-Token, Authorization, apollographql-client-name, apollographql-client-version",
+  );
+  return new Response(null, { status: 204, headers });
 };
