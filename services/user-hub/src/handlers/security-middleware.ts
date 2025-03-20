@@ -1,6 +1,6 @@
 import { GraphQLError } from "graphql";
 import crypto from "crypto";
-import { KvStorageServiceAPI } from "@src/services/kv-storage-service";
+import { Redis } from "@upstash/redis";
 
 // Constants
 const MAX_REQUEST_AGE_MS = 5 * 60 * 1000; // 5 minutes
@@ -25,11 +25,8 @@ export class SecurityMiddleware {
     return result === 0;
   }
 
-  async verifySecurityHeaders(
-    headers: Headers,
-    env: Env,
-    kvStorageAPI: KvStorageServiceAPI,
-  ): Promise<{ nonceKey: string; noncetimestamp: string }> {
+  async verifySecurityHeaders(headers: Headers, env: Env, redis: Redis): Promise<{ nonceKey: string; noncetimestamp: string }> {
+    const isDev = env.ENVIRONMENT === "dev";
     const noncetimestamp = this.getHeader(headers, "X-Gateway-Timestamp");
     const nonce = this.getHeader(headers, "X-Gateway-Nonce");
     const signature = this.getHeader(headers, "X-Gateway-Signature");
@@ -38,6 +35,7 @@ export class SecurityMiddleware {
     const userRole = this.getHeader(headers, "X-User-Role");
     const is_schema_federation = this.getHeader(headers, "X-Schema-Federation");
     const timestamp = noncetimestamp;
+    const nonceKey = `nonce:${nonce}`;
 
     // 1. Check if all required headers are present
     if (!timestamp || !signature || !nonce) {
@@ -54,15 +52,17 @@ export class SecurityMiddleware {
       });
     }
 
-    // 2. Check if nonce was used before
-    const nonceKey = `nonce:${nonce}`;
-    const usedNonce = await kvStorageAPI.nonceExists(nonceKey);
-    if (usedNonce) {
-      // Add logging for potential replay attacks
-      console.warn(`Potential replay attack detected: Duplicate nonce ${nonce} used`);
-      throw new GraphQLError("Duplicate request - nonce already used", {
-        extensions: { code: "REPLAY_ATTACK", status: 401 },
-      });
+    // 2. Using redis to store nonce in PROD
+    // TODO: need to check for mutation operations only
+    if (!isDev) {
+      const usedNonce = await redis.get(nonceKey);
+      if (usedNonce) {
+        // Add logging for potential replay attacks
+        console.warn(`Potential replay attack detected: Duplicate nonce ${nonce} used`);
+        throw new GraphQLError("Duplicate request - nonce already used", {
+          extensions: { code: "REPLAY_ATTACK", status: 401 },
+        });
+      }
     }
 
     // 3. Verify request is recent
@@ -77,13 +77,9 @@ export class SecurityMiddleware {
     // 4. Verify signature
     const matchesGatewaySignature = is_schema_federation === "true" && this.constantTimeCompare(signature, env.GATEWAY_SIGNATURE);
 
-    console.log("is_schema_federation", is_schema_federation);
-    console.log("validateSchemaFederation", is_schema_federation === "true");
-    console.log("matchesGatewaySignature", matchesGatewaySignature);
-
     // This is to allow the gateway to build the supergraph or codegen without needing to sign requests in dev
     if (matchesGatewaySignature) {
-      console.warn("Skipping signature verification in dev environment to allow gateway to build supergraph or codegen schema generation");
+      console.warn("Skipping signature verification for gateway request to allow gateway to build supergraph or codegen schema generation");
     } else {
       const payload = authorization ? `${userId ?? ""}:${userRole ?? ""}:${timestamp}:${nonce}` : `public:${timestamp}:${nonce}`;
       const expectedSignature = crypto.createHmac("sha256", env.GATEWAY_SECRET).update(payload).digest("hex");

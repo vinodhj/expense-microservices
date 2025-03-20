@@ -1,27 +1,54 @@
 import { ExecutionResult } from "graphql";
 import { YogaInitialContext } from "./graphql";
-import type { Plugin } from "@envelop/core";
+import type { Plugin as EnvelopPlugin } from "@envelop/core";
+import { Redis } from "@upstash/redis";
 
 const NONCE_EXPIRATION_TTL = 5 * 60; // 5 minutes in seconds
 
-// Plugin to store nonce in KV storage
-export function createNonceStoragePlugin() {
+// Plugin to store nonce in redis
+export function createNonceStoragePlugin(redis: Redis) {
   return {
     onExecutionResult: async ({ result, context }: { result: ExecutionResult; context: YogaInitialContext }) => {
+      // Early return if result is invalid or has errors
+      if (!result || result.errors || !result.data) return;
+
+      // Early return if not a mutation
+      if (result.data.__typename !== "Mutation") return;
+
       // Store nonce only if request was successful
-      if (result && !result.errors) {
-        try {
-          await context.apis.kvStorageAPI.nonceStore(context.nonceKey, context.noncetimestamp, NONCE_EXPIRATION_TTL);
-        } catch (error) {
-          console.error(`Failed to store nonce ${context.nonceKey}: ${error}`);
-        }
+      try {
+        await redis.set(context.nonceKey, context.noncetimestamp, { ex: NONCE_EXPIRATION_TTL });
+      } catch (error) {
+        console.error(`Failed to store nonce ${context.nonceKey}: ${error}`);
       }
     },
   };
 }
 
+// TODO: WIP - not working
+// export function createNonceGetPlugin(redis: Redis): Plugin {
+//   return {
+//     onParse({ params, context }) {
+//       // check if the query string starts with "mutation"
+//       const isMutation = params?.source?.trim().toLowerCase().startsWith("mutation");
+//       const nonce = getHeader(context.request.headers, "X-Gateway-Nonce");
+//       const nonceKey = `nonce:${nonce}`;
+//       if (!isMutation || !nonce) {
+//         const usedNonce = nonce && redis.get(nonceKey);
+//         if (usedNonce) {
+//           // Add logging for potential replay attacks
+//           console.warn(`Potential replay attack detected: Duplicate nonce ${nonce} used`);
+//           throw new GraphQLError("Duplicate request - nonce already used", {
+//             extensions: { code: "REPLAY_ATTACK", status: 401 },
+//           });
+//         }
+//       }
+//     },
+//   };
+// }
+
 // Plugin to log GraphQL execution time
-export const createMetricsPlugin: Plugin = {
+export const createMetricsPlugin: EnvelopPlugin = {
   onExecute() {
     const start = Date.now();
     return {

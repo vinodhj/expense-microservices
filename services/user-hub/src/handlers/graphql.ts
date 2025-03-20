@@ -6,12 +6,14 @@ import { APIs, createAPIs, SessionUserType } from "@src/services";
 import { Role } from "db/schema/user";
 import { createMetricsPlugin, createNonceStoragePlugin } from "./graphql-plugins";
 import { SecurityMiddleware } from "./security-middleware";
+import { Redis } from "@upstash/redis/cloudflare";
 
 export interface YogaInitialContext {
   jwtSecret: string;
   accessToken: string | null;
   sessionUser: SessionUserType;
   apis: APIs;
+  redis: Redis;
   nonceKey: string;
   noncetimestamp: string;
 }
@@ -23,10 +25,18 @@ const getAccessToken = (authorizationHeader: string | null): string | null => {
   return authorizationHeader.replace(/bearer\s+/i, "").trim();
 };
 
-const getHeader = (headers: Headers, key: string): string | null => headers.get(key) ?? headers.get(key.toLowerCase());
+export const getHeader = (headers: Headers, key: string): string | null => headers.get(key) ?? headers.get(key.toLowerCase());
 
+// Define type for the expected request body
+interface GraphQLRequestBody {
+  query: string;
+  operationName?: string;
+  variables?: Record<string, any>;
+}
 export default async function handleGraphQL(request: Request, env: Env): Promise<Response> {
   const db = drizzle(env.DB);
+  const redis = Redis.fromEnv(env);
+  const isDev = env.ENVIRONMENT === "dev";
 
   // Instantiate security middleware
   const securityMiddleware = new SecurityMiddleware();
@@ -36,9 +46,10 @@ export default async function handleGraphQL(request: Request, env: Env): Promise
     cors: false, // manually added CORS headers in addCORSHeaders
     landingPage: false,
     graphqlEndpoint: GRAPHQL_PATH,
-    plugins: [createNonceStoragePlugin(), createMetricsPlugin],
+    plugins: [createMetricsPlugin, ...(isDev ? [] : [createNonceStoragePlugin(redis)])],
     context: async ({ request }) => {
       const headers = request.headers;
+
       const projectToken = getHeader(headers, "X-Project-Token");
       const authorization = getHeader(headers, "Authorization");
 
@@ -65,10 +76,10 @@ export default async function handleGraphQL(request: Request, env: Env): Promise
       }
 
       // Create service APIs
-      const { authAPI, userAPI, kvStorageAPI } = createAPIs({ db, env, sessionUser });
+      const { authAPI, userAPI, kvStorageAPI } = createAPIs({ db, env, sessionUser, redis });
 
       // Verify security headers
-      const { nonceKey, noncetimestamp } = await securityMiddleware.verifySecurityHeaders(headers, env, kvStorageAPI);
+      const { nonceKey, noncetimestamp } = await securityMiddleware.verifySecurityHeaders(headers, env, redis);
 
       return {
         jwtSecret: env.JWT_SECRET,

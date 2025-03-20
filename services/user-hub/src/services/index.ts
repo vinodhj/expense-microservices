@@ -6,6 +6,7 @@ import { DrizzleD1Database } from "drizzle-orm/d1";
 import { KvStorageServiceAPI } from "./kv-storage-service";
 import { KvStorageDataSource } from "@src/datasources/kv-storage";
 import { Role } from "db/schema/user";
+import { Redis } from "@upstash/redis";
 
 export type SessionUserType = {
   id: string;
@@ -18,6 +19,7 @@ interface APIParams {
   db: DrizzleD1Database;
   env: Env;
   sessionUser: SessionUserType;
+  redis: Redis;
 }
 
 export interface APIs {
@@ -29,7 +31,8 @@ export interface APIs {
 /**
  * Factory function to create API/service instances.
  */
-export const createAPIs = ({ db, env, sessionUser }: APIParams): APIs => {
+// TODO: Need to use redis in data sources
+export const createAPIs = ({ db, env, sessionUser, redis }: APIParams): APIs => {
   // KV Storage Service API
   const kvStorageDataSource = new KvStorageDataSource(env.KV_CF_JWT_AUTH, env.EXPENSE_AUTH_EVENTS_KV);
   const kvStorageAPI = new KvStorageServiceAPI(kvStorageDataSource);
