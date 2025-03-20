@@ -12,6 +12,18 @@
   },
   "compatibility_flags": ["nodejs_compat"],
   "minify": true,
+  "env": {
+    "dev": {
+      "vars": {
+        "ENVIRONMENT": "dev",
+      },
+    },
+    "production": {
+      "vars": {
+        "ENVIRONMENT": "production",
+      },
+    },
+  },
   "d1_databases": [
     {
       "binding": "DB",
@@ -24,6 +36,10 @@
     {
       "binding": "KV_CF_JWT_AUTH",
       "id": "a95d747a937940de926543b47ebba7e4",
+    },
+    {
+      "binding": "EXPENSE_AUTH_EVENTS_KV",
+      "id": "c7d647fbdaa74dff98470e7282f1bf03",
     },
   ],
   /**

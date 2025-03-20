@@ -1,82 +1,39 @@
-import { createGatewayRuntime, GatewayConfig } from "@graphql-hive/gateway-runtime";
-import httpTransport from "@graphql-mesh/transport-http";
-import { gatewayConfig } from "../mesh.config";
-import { supergraphSdl } from ".././supergraph-string";
+import { GatewayRuntime } from "@graphql-hive/gateway-runtime";
+import { initializeGateway } from "./gateway";
+import { addCorsHeaders, handleCorsPreflight } from "./helper/cors-helper";
 
-export interface Env {
-  USER_SERVICE_URL: string;
-  WORKER_ENV: string;
-  USER_SERVICE_WORKER: Fetcher;
-}
-
-interface Fetcher {
-  fetch: typeof fetch;
-}
+// Gateway disposal
+const disposeGateway = (gateway: GatewayRuntime<Record<string, any>>, ctx: ExecutionContext) => {
+  const disposeMethod = gateway[Symbol.asyncDispose];
+  if (typeof disposeMethod === "function") {
+    const disposePromise = disposeMethod.call(gateway);
+    ctx.waitUntil(Promise.resolve(disposePromise));
+  }
+};
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     // Handle CORS preflight
     if (request.method === "OPTIONS") {
-      return new Response(null, {
-        status: 204,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          "Access-Control-Max-Age": "86400",
-        },
-      });
+      return handleCorsPreflight();
     }
 
     try {
       const isDevelopment = env.WORKER_ENV === "dev";
       console.log(`Running in ${isDevelopment ? "development" : "production"} mode`);
 
-      // Create the gateway runtime
-      const gateway = createGatewayRuntime({
-        ...(gatewayConfig as GatewayConfig),
-        supergraph: supergraphSdl,
-        transports: {
-          http: httpTransport,
-        },
-        fetchAPI: {
-          fetch: (url, options) => {
-            // Determine which service to call based on the URL
-            if (url.includes(env.USER_SERVICE_URL)) {
-              return env.USER_SERVICE_WORKER.fetch(url, options);
-            }
-            // Fallback to default fetch if no match
-            return fetch(url, options);
-          },
-        },
-      });
-
-      // Make sure to dispose the gateway when done
-      const disposeMethod = gateway[Symbol.asyncDispose];
-      if (typeof disposeMethod === "function") {
-        const disposePromise = disposeMethod.call(gateway);
-        ctx.waitUntil(Promise.resolve(disposePromise));
-      }
+      // Initialize the gateway runtime
+      const gateway = initializeGateway(env);
 
       // Process the request
       const response = await gateway(request);
 
-      // Add CORS headers to the response if they're not already present
-      if (response && !response.headers.has("Access-Control-Allow-Origin")) {
-        const headers = new Headers(response.headers);
-        headers.set("Access-Control-Allow-Origin", "*");
+      // Schedule disposal of the gateway (don't await it)
+      disposeGateway(gateway, ctx);
 
-        return new Response(response.body, {
-          status: response.status,
-          statusText: response.statusText,
-          headers,
-        });
-      }
-
-      return response;
+      return addCorsHeaders(response);
     } catch (error) {
       console.error("Gateway error:", error);
-
       return new Response(
         JSON.stringify({
           errors: [

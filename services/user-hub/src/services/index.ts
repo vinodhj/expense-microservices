@@ -3,7 +3,6 @@ import { AuthServiceAPI } from "./auth-service";
 import { UserDataSource } from "@src/datasources/user";
 import { UserServiceAPI } from "./user-service";
 import { DrizzleD1Database } from "drizzle-orm/d1";
-import { Env } from "@src/index";
 import { KvStorageServiceAPI } from "./kv-storage-service";
 import { KvStorageDataSource } from "@src/datasources/kv-storage";
 import { Role } from "db/schema/user";
@@ -32,7 +31,7 @@ export interface APIs {
  */
 export const createAPIs = ({ db, env, sessionUser }: APIParams): APIs => {
   // KV Storage Service API
-  const kvStorageDataSource = new KvStorageDataSource(env.KV_CF_JWT_AUTH);
+  const kvStorageDataSource = new KvStorageDataSource(env.KV_CF_JWT_AUTH, env.EXPENSE_AUTH_EVENTS_KV);
   const kvStorageAPI = new KvStorageServiceAPI(kvStorageDataSource);
 
   // Auth Service API
