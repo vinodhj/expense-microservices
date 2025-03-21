@@ -149,31 +149,56 @@ export class AuthDataSource {
 
   // need to call from another service
   private async getUserById(id: string) {
-    const result_user = await this.db.select().from(user).where(eq(user.id, id)).get();
-    if (!result_user) {
-      throw new GraphQLError("User not found", {
+    try {
+      const result_user = await this.db.select().from(user).where(eq(user.id, id)).get();
+      if (!result_user) {
+        throw new GraphQLError("User not found", {
+          extensions: {
+            code: "NOT_FOUND",
+          },
+        });
+      }
+      return result_user;
+    } catch (error) {
+      console.error("error", error);
+      if (error instanceof GraphQLError || error instanceof Error) {
+        //to throw GraphQLError/original error
+        throw new GraphQLError(`Failed to get user ${error.message ? "- " + error.message : ""}`, {
+          extensions: {
+            code: error instanceof GraphQLError ? error.extensions.code : "INTERNAL_SERVER_ERROR",
+            error: error.message,
+          },
+        });
+      }
+      throw new GraphQLError("Failed to get user due to an unexpected error", {
         extensions: {
-          code: "NOT_FOUND",
+          code: "INTERNAL_SERVER_ERROR",
+          error,
         },
       });
     }
-    return result_user;
   }
 
   private async updatePassword(id: string, newPassword: string) {
-    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-    const result = await this.db
-      .update(user)
-      .set({
-        password: hashedNewPassword,
-        updated_at: new Date(),
-      })
-      .where(and(eq(user.id, id)))
-      .returning()
-      .get();
+    try {
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
-    if (result) return true;
-    console.warn("Password update failed");
-    return false;
+      const result = await this.db
+        .update(user)
+        .set({
+          password: hashedNewPassword,
+          updated_at: new Date(),
+        })
+        .where(and(eq(user.id, id)))
+        .returning()
+        .get();
+
+      if (result) return true;
+      console.warn("Password update failed - no rows affected");
+      return false;
+    } catch (error) {
+      console.error(`Error updating password for user ${id}:`, error);
+      return false;
+    }
   }
 }

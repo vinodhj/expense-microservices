@@ -4,6 +4,7 @@ import { handleCorsPreflight } from "./cors-headers";
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    console.log(`Running in: ${env.ENVIRONMENT} mode`);
     const url = new URL(request.url);
 
     // ✅ Handle CORS Preflight Requests (OPTIONS)

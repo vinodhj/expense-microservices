@@ -13,15 +13,13 @@ const disposeGateway = (gateway: GatewayRuntime<Record<string, any>>, ctx: Execu
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    console.log(`Running in: ${env.ENVIRONMENT} mode`);
     // Handle CORS preflight
     if (request.method === "OPTIONS") {
       return handleCorsPreflight();
     }
 
     try {
-      const isDevelopment = env.WORKER_ENV === "DEV";
-      console.log(`Running in ${isDevelopment ? "development" : "production"} mode`);
-
       // Initialize the gateway runtime
       const gateway = initializeGateway(env);
 
@@ -39,7 +37,7 @@ export default {
           errors: [
             {
               message: error instanceof Error ? error.message : "Unknown error occurred",
-              stack: error instanceof Error ? error.stack : undefined,
+              stack: error instanceof Error && env.ENVIRONMENT === "development" ? error.stack : undefined,
               type: error instanceof Error ? error.constructor.name : typeof error,
             },
           ],

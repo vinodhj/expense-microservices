@@ -79,7 +79,17 @@ export class AuthServiceAPI {
 
     // Here we use the KV storage API from the auth data source to increment the token version,
     // thereby invalidating all tokens issued before this logout.
-    await this.authDataSource.incrementTokenVersion(payload.email);
+    try {
+      await this.authDataSource.incrementTokenVersion(payload.email);
+    } catch (error) {
+      throw new GraphQLError("Failed to increment token version", {
+        extensions: {
+          code: "TOKEN_VERSION_INCREMENT_ERROR",
+          error,
+          status: 500,
+        },
+      });
+    }
 
     return { success: true };
   }
