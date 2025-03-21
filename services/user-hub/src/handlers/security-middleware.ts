@@ -1,6 +1,5 @@
 import { GraphQLError } from "graphql";
 import crypto from "crypto";
-import { Redis } from "@upstash/redis";
 
 // Constants
 const MAX_REQUEST_AGE_MS = 5 * 60 * 1000; // 5 minutes
@@ -25,8 +24,7 @@ export class SecurityMiddleware {
     return result === 0;
   }
 
-  async verifySecurityHeaders(headers: Headers, env: Env, redis: Redis): Promise<{ nonceKey: string; noncetimestamp: string }> {
-    const isDev = env.ENVIRONMENT === "dev";
+  async verifySecurityHeaders(headers: Headers, env: Env): Promise<{ nonceKey: string; noncetimestamp: string }> {
     const noncetimestamp = this.getHeader(headers, "X-Gateway-Timestamp");
     const nonce = this.getHeader(headers, "X-Gateway-Nonce");
     const signature = this.getHeader(headers, "X-Gateway-Signature");

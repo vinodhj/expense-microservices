@@ -1,6 +1,7 @@
 import { GraphQLError } from "graphql";
 import jwt from "jsonwebtoken";
 import { Role } from "generates";
+import { Redis } from "@upstash/redis/cloudflare";
 
 export interface TokenPayload {
   id: string;
@@ -16,10 +17,14 @@ export const jwtVerifyToken = async ({
   token,
   secret,
   kvStorage,
+  redis,
+  ENVIRONMENT,
 }: {
   token: string;
   secret: string;
   kvStorage: KVNamespace;
+  redis: Redis;
+  ENVIRONMENT: string;
 }): Promise<TokenPayload> => {
   try {
     const payload = jwt.verify(token, secret) as TokenPayload;
@@ -28,8 +33,8 @@ export const jwtVerifyToken = async ({
      * We use the user's email as the key identifier; adjust if you have a different unique identifier.
      * Fetch the current token version for this user (default to 0 if not set)
      */
-    const currentVersionStr = await kvStorage.get(`user:${payload.email}:tokenVersion`);
-    const storedVersion = currentVersionStr ? parseInt(currentVersionStr) : 0;
+    const currentVersionStr = await redis.get(`user:${ENVIRONMENT}:${payload.email}:tokenVersion`);
+    const storedVersion = currentVersionStr ? parseInt(currentVersionStr as string) : 0;
 
     if (payload.tokenVersion !== storedVersion) {
       throw new GraphQLError("For security reasons, your session is no longer valid. Please sign in again", {
@@ -43,7 +48,7 @@ export const jwtVerifyToken = async ({
   } catch (error) {
     console.error("Error verifying token:", error);
     // Save invalid token log to KVNamespace
-    const logKey = `invalid-token:${new Date().toISOString()}`;
+    const logKey = `invalid-token:${ENVIRONMENT}:${new Date().toISOString()}`;
     const logValue = JSON.stringify({
       token,
       error: error,

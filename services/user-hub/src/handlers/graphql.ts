@@ -30,7 +30,7 @@ export const getHeader = (headers: Headers, key: string): string | null => heade
 export default async function handleGraphQL(request: Request, env: Env): Promise<Response> {
   const db = drizzle(env.DB);
   const redis = Redis.fromEnv(env);
-  const isDev = env.ENVIRONMENT === "dev";
+  const isDev = env.ENVIRONMENT === "DEV";
   const isNonce = env.NONCE_ENABLED === "true";
 
   // Instantiate security middleware
@@ -75,7 +75,7 @@ export default async function handleGraphQL(request: Request, env: Env): Promise
       const { authAPI, userAPI, kvStorageAPI } = createAPIs({ db, env, sessionUser, redis });
 
       // Verify security headers
-      const { nonceKey, noncetimestamp } = await securityMiddleware.verifySecurityHeaders(headers, env, redis);
+      const { nonceKey, noncetimestamp } = await securityMiddleware.verifySecurityHeaders(headers, env);
 
       return {
         jwtSecret: env.JWT_SECRET,
