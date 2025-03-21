@@ -1,29 +1,34 @@
+import { Redis } from "@upstash/redis/cloudflare";
 import { AdminKvAsset, AdminKvAssetInput } from "generated";
 import { GraphQLError } from "graphql";
 
 export class KvStorageDataSource {
   private readonly kvAssets: KVNamespace;
   private readonly kvEvents: KVNamespace;
+  private readonly redis: Redis;
+  private readonly ENVIRONMENT: string;
 
-  constructor(kvAssets: KVNamespace, kvEvents: KVNamespace) {
+  constructor(kvAssets: KVNamespace, kvEvents: KVNamespace, redis: Redis, ENVIRONMENT: string) {
     this.kvAssets = kvAssets;
     this.kvEvents = kvEvents;
+    this.redis = redis;
+    this.ENVIRONMENT = ENVIRONMENT;
   }
 
   async getTokenVersion(email: string): Promise<number> {
     // Fetch the current token version for this user (default to 0 if not set)
-    const currentVersionStr = await this.kvEvents.get(`user:${email}:tokenVersion`);
-    return currentVersionStr ? parseInt(currentVersionStr) : 0;
+    const currentVersionStr = await this.redis.get(`user:${this.ENVIRONMENT}:${email}:tokenVersion`);
+    return currentVersionStr ? parseInt(currentVersionStr as string) : 0;
   }
 
   async incrementTokenVersion(email: string): Promise<boolean> {
     // Retrieve the current token version from KV using the user's email as the key.
-    const currentVersionStr = await this.kvEvents.get(`user:${email}:tokenVersion`);
-    let currentVersion = currentVersionStr ? parseInt(currentVersionStr) : 0;
+    const currentVersionStr = await this.redis.get(`user:${this.ENVIRONMENT}:${email}:tokenVersion`);
+    let currentVersion = currentVersionStr ? parseInt(currentVersionStr as string) : 0;
 
     // Increment the version so that tokens with the old version are now invalid.
     currentVersion++;
-    await this.kvEvents.put(`user:${email}:tokenVersion`, currentVersion.toString());
+    await this.redis.set(`user:${this.ENVIRONMENT}:${email}:tokenVersion`, currentVersion.toString());
     return true;
   }
 
@@ -44,16 +49,5 @@ export class KvStorageDataSource {
         },
       });
     }
-  }
-
-  async nonceExists(nonce_key: string): Promise<boolean> {
-    // Check if nonce exists in KV store
-    const result = await this.kvEvents.get(nonce_key);
-    return result !== null;
-  }
-
-  async nonceStore(nonce_key: string, timestamp: string, expirationTtl: number): Promise<void> {
-    // Store nonce in KV store
-    await this.kvEvents.put(nonce_key, timestamp, { expirationTtl });
   }
 }

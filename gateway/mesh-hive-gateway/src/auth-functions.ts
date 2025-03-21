@@ -2,9 +2,10 @@ import { ResolveUserFn, ValidateUserFn } from "@graphql-hive/gateway-runtime";
 import { jwtVerifyToken } from "./helper/jwt-verify-token";
 import crypto from "crypto";
 import { GraphQLError } from "graphql";
+import { Redis } from "@upstash/redis/cloudflare";
 
 // Auth functions factory
-export const createAuthFunctions = (env: Env) => {
+export const createAuthFunctions = (env: Env, redis: Redis) => {
   /**
    * Resolves the user session from the Authorization header and verifies the token using the JWT secret.
    * If the token is invalid, throws a GraphQLError with a 401 status code and the "UNAUTHORIZED" code.
@@ -33,7 +34,14 @@ export const createAuthFunctions = (env: Env) => {
       return null; // No auth token provided
     }
     try {
-      const jwtToken = await jwtVerifyToken({ token: accessToken, secret: env.JWT_SECRET, kvStorage: env.EXPENSE_AUTH_EVENTS_KV });
+      // Verify token
+      const jwtToken = await jwtVerifyToken({
+        token: accessToken,
+        secret: env.JWT_SECRET,
+        kvStorage: env.EXPENSE_AUTH_EVENTS_KV,
+        redis,
+        ENVIRONMENT: env.ENVIRONMENT,
+      });
       const user = {
         id: jwtToken.id,
         role: jwtToken.role,
