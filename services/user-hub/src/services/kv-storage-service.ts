@@ -17,12 +17,4 @@ export class KvStorageServiceAPI {
     }
     return await this.kvDataSource.adminKvAsset(input);
   }
-
-  async nonceExists(nonce_key: string): Promise<boolean> {
-    return await this.kvDataSource.nonceExists(nonce_key);
-  }
-
-  async nonceStore(nonce_key: string, timestamp: string, expirationTtl: number): Promise<void> {
-    await this.kvDataSource.nonceStore(nonce_key, timestamp, expirationTtl);
-  }
 }

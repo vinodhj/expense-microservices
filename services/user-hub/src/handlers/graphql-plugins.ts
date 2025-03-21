@@ -1,7 +1,7 @@
 import { ExecutionArgs, ExecutionResult, getOperationAST, GraphQLError } from "graphql";
 import { YogaInitialContext } from "./graphql";
 import type { Plugin as EnvelopPlugin } from "@envelop/core";
-import { Redis } from "@upstash/redis";
+import { Redis } from "@upstash/redis/cloudflare";
 
 const NONCE_EXPIRATION_TTL = 5 * 60; // 5 minutes in seconds
 

@@ -19,7 +19,7 @@ export default {
     }
 
     try {
-      const isDevelopment = env.WORKER_ENV === "dev";
+      const isDevelopment = env.WORKER_ENV === "DEV";
       console.log(`Running in ${isDevelopment ? "development" : "production"} mode`);
 
       // Initialize the gateway runtime
