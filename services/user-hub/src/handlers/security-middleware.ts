@@ -52,18 +52,7 @@ export class SecurityMiddleware {
       });
     }
 
-    // 2. Using redis to store nonce in PROD
-    // TODO: need to check for mutation operations only
-    if (!isDev) {
-      const usedNonce = await redis.get(nonceKey);
-      if (usedNonce) {
-        // Add logging for potential replay attacks
-        console.warn(`Potential replay attack detected: Duplicate nonce ${nonce} used`);
-        throw new GraphQLError("Duplicate request - nonce already used", {
-          extensions: { code: "REPLAY_ATTACK", status: 401 },
-        });
-      }
-    }
+    // 2. Nonce validation has been implemented in the graphql plugin to prevent replay attacks
 
     // 3. Verify request is recent
     const now = Date.now();

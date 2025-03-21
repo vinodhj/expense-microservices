@@ -27,16 +27,11 @@ const getAccessToken = (authorizationHeader: string | null): string | null => {
 
 export const getHeader = (headers: Headers, key: string): string | null => headers.get(key) ?? headers.get(key.toLowerCase());
 
-// Define type for the expected request body
-interface GraphQLRequestBody {
-  query: string;
-  operationName?: string;
-  variables?: Record<string, any>;
-}
 export default async function handleGraphQL(request: Request, env: Env): Promise<Response> {
   const db = drizzle(env.DB);
   const redis = Redis.fromEnv(env);
   const isDev = env.ENVIRONMENT === "dev";
+  const isNonce = env.NONCE_ENABLED === "true";
 
   // Instantiate security middleware
   const securityMiddleware = new SecurityMiddleware();
@@ -46,7 +41,8 @@ export default async function handleGraphQL(request: Request, env: Env): Promise
     cors: false, // manually added CORS headers in addCORSHeaders
     landingPage: false,
     graphqlEndpoint: GRAPHQL_PATH,
-    plugins: [createMetricsPlugin, ...(isDev ? [] : [createNonceStoragePlugin(redis)])],
+    // Nonce plugins is only active in the production and is controlled through environment variables.
+    plugins: [createMetricsPlugin, ...(isNonce && !isDev ? [createNonceStoragePlugin(redis)] : [])],
     context: async ({ request }) => {
       const headers = request.headers;
 
