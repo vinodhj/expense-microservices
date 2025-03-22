@@ -2,18 +2,18 @@
 
 # update-secrets.sh - Script to update Cloudflare Worker secrets
 
-# Check if a .env.main file exists
-if [ ! -f .env.main ]; then
-  echo "Error: .env.main file not found. Please create a .env.main file with your secrets."
+# Check if a .env.secrets file exists
+if [ ! -f .env.secrets ]; then
+  echo "Error: .env.secrets file not found. Please create a .env.secrets file with your secrets."
   exit 1
 fi
 
-# Load secrets from .env.main file
-source .env.main
+# Load secrets from .env.secrets file
+source .env.secrets
 
-echo "Loaded secrets from .env.main"
+echo "Loaded secrets from .env.secrets"
 
-# Process each line in the .env.main file
+# Process each line in the .env.secrets file
 while IFS='=' read -r key value || [ -n "$key" ]; do
   # Skip empty lines and comments
   if [ -z "$key" ] || [[ "$key" =~ ^# ]]; then
@@ -38,6 +38,6 @@ while IFS='=' read -r key value || [ -n "$key" ]; do
   else
     echo "✗ Failed to update $key"
   fi
-done < .env.main
+done < .env.secrets
 
 echo "All secrets have been processed."
