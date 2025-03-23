@@ -174,3 +174,5 @@ dist
 .wrangler/
 
 .db-local/
+
+.local
