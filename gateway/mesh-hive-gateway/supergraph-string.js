@@ -33,25 +33,9 @@ export const supergraphSdl = /* GraphQL */ `
 
   directive @join__unionMember(graph: join__Graph!, member: String!) repeatable on UNION
 
-  directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
-
-  directive @public on FIELD_DEFINITION
-
-  directive @transport(
-    kind: String!
-    subgraph: String!
-    location: String!
-    headers: [[String]]
-    options: TransportOptions
-  ) repeatable on SCHEMA
-
-  directive @extraSchemaDefinitionDirective(directives: _DirectiveExtensions) repeatable on OBJECT
-
-  directive @additionalField on FIELD_DEFINITION
-
-  directive @auth(roles: [Role!]) on FIELD_DEFINITION
-
   scalar join__FieldSet
+
+  directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
 
   scalar link__Import
 
@@ -65,6 +49,18 @@ export const supergraphSdl = /* GraphQL */ `
   enum join__Graph {
     USER_SERVICE @join__graph(name: "UserService", url: "http://localhost:8501/graphql")
   }
+
+  directive @public on FIELD_DEFINITION
+
+  directive @transport(
+    kind: String!
+    subgraph: String!
+    location: String!
+    headers: [[String]]
+    options: TransportOptions
+  ) repeatable on SCHEMA
+
+  directive @extraSchemaDefinitionDirective(directives: _DirectiveExtensions) repeatable on OBJECT
 
   scalar DateTime @join__type(graph: USER_SERVICE)
 
@@ -175,8 +171,7 @@ export const supergraphSdl = /* GraphQL */ `
     userByEmail(input: UserByEmailInput!): UserResponse
     userByfield(input: UserByFieldInput!): [UserResponse]
     users: [UserResponse]
-    adminKvAsset(input: AdminKvAssetInput!): AdminKvAsset @public
-    current_session_user: SessionUser @auth @additionalField
+    adminKvAsset(input: AdminKvAssetInput!): AdminKvAsset
   }
 
   type Mutation @join__type(graph: USER_SERVICE) {
@@ -259,12 +254,5 @@ export const supergraphSdl = /* GraphQL */ `
 
   input AdminKvAssetInput @join__type(graph: USER_SERVICE) {
     kv_key: String!
-  }
-
-  type SessionUser {
-    id: String! @additionalField
-    email: String! @additionalField
-    name: String! @additionalField
-    role: Role! @additionalField
   }
 `;

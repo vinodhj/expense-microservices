@@ -1,8 +1,9 @@
 import { ResolveUserFn, ValidateUserFn } from "@graphql-hive/gateway-runtime";
 import { jwtVerifyToken } from "./helper/jwt-verify-token";
 import crypto from "crypto";
-import { GraphQLError } from "graphql";
+import { ExecutionArgs, GraphQLError } from "graphql";
 import { Redis } from "@upstash/redis/cloudflare";
+import { isPublicOperation } from "./helper/public-operation";
 
 // Auth functions factory
 export const createAuthFunctions = (env: Env, redis: Redis) => {
@@ -83,16 +84,20 @@ export const createAuthFunctions = (env: Env, redis: Redis) => {
    * @throws {GraphQLError} If authentication fails for non-public operations.
    */
 
-  const validateUser: ValidateUserFn<any> = ({ user, executionArgs }) => {
-    console.log("executionArgs", JSON.stringify(executionArgs, null, 2) + "\n");
-    // Check if this operation requires auth
-    const publicOperations = ["login", "signUp"];
-    const operationName = executionArgs.operationName ?? "";
-    if (publicOperations.includes(operationName)) {
+  const validateUser: ValidateUserFn<any> = ({ user, executionArgs }: { user: any; executionArgs: ExecutionArgs }) => {
+    // If the operation is public, return immediately (no auth required)
+    if (isPublicOperation(executionArgs)) {
       return; // Allow public operations (returning void means valid)
     }
 
-    // Validate auth token
+    // old operations -> now we are using @public directive to allow public operations
+    // const publicOperations = ["login", "signUp"];
+    // const operationName = executionArgs.operationName ?? "";
+    // if (publicOperations.includes(operationName)) {
+    //   return;
+    // }
+
+    // Otherwise, validate authentication
     if (user === null) {
       throw new GraphQLError("Authentication failed for non-public operation", {
         extensions: {

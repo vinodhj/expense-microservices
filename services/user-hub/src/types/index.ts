@@ -168,7 +168,7 @@ export const typeDefs = gql`
     userByEmail(input: UserByEmailInput!): UserResponse
     userByfield(input: UserByFieldInput!): [UserResponse]
     users: [UserResponse]
-    adminKvAsset(input: AdminKvAssetInput!): AdminKvAsset @public
+    adminKvAsset(input: AdminKvAssetInput!): AdminKvAsset
   }
 
   type Mutation {

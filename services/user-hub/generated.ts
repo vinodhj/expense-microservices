@@ -16,6 +16,11 @@ export type Scalars = {
   Float: { input: number; output: number };
   DateTime: { input: any; output: any };
   JSON: { input: any; output: any };
+  _Any: { input: any; output: any };
+  federation__FieldSet: { input: any; output: any };
+  federation__Policy: { input: any; output: any };
+  federation__Scope: { input: any; output: any };
+  link__Import: { input: any; output: any };
 };
 
 export type AdminKvAsset = {
@@ -120,6 +125,7 @@ export type MutationSignUpArgs = {
 
 export type Query = {
   __typename?: "Query";
+  _service: _Service;
   adminKvAsset?: Maybe<AdminKvAsset>;
   userByEmail?: Maybe<UserResponse>;
   userByfield?: Maybe<Array<Maybe<UserResponse>>>;
@@ -222,6 +228,18 @@ export type UserSuccessResponse = {
   zipcode?: Maybe<Scalars["String"]["output"]>;
 };
 
+export type _Service = {
+  __typename?: "_Service";
+  sdl?: Maybe<Scalars["String"]["output"]>;
+};
+
+export enum Link__Purpose {
+  /** `EXECUTION` features provide metadata necessary for operation execution. */
+  Execution = "EXECUTION",
+  /** `SECURITY` features provide metadata necessary to securely resolve fields. */
+  Security = "SECURITY",
+}
+
 export type ResolverTypeWrapper<T> = Promise<T> | T;
 
 export type ResolverWithResolve<TResult, TParent, TContext, TArgs> = {
@@ -315,6 +333,13 @@ export type ResolversTypes = {
   UserByFieldInput: UserByFieldInput;
   UserResponse: ResolverTypeWrapper<UserResponse>;
   UserSuccessResponse: ResolverTypeWrapper<UserSuccessResponse>;
+  _Any: ResolverTypeWrapper<Scalars["_Any"]["output"]>;
+  _Service: ResolverTypeWrapper<_Service>;
+  federation__FieldSet: ResolverTypeWrapper<Scalars["federation__FieldSet"]["output"]>;
+  federation__Policy: ResolverTypeWrapper<Scalars["federation__Policy"]["output"]>;
+  federation__Scope: ResolverTypeWrapper<Scalars["federation__Scope"]["output"]>;
+  link__Import: ResolverTypeWrapper<Scalars["link__Import"]["output"]>;
+  link__Purpose: Link__Purpose;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -342,7 +367,172 @@ export type ResolversParentTypes = {
   UserByFieldInput: UserByFieldInput;
   UserResponse: UserResponse;
   UserSuccessResponse: UserSuccessResponse;
+  _Any: Scalars["_Any"]["output"];
+  _Service: _Service;
+  federation__FieldSet: Scalars["federation__FieldSet"]["output"];
+  federation__Policy: Scalars["federation__Policy"]["output"];
+  federation__Scope: Scalars["federation__Scope"]["output"];
+  link__Import: Scalars["link__Import"]["output"];
 };
+
+export type ComposeDirectiveDirectiveArgs = {
+  name?: Maybe<Scalars["String"]["input"]>;
+};
+
+export type ComposeDirectiveDirectiveResolver<
+  Result,
+  Parent,
+  ContextType = any,
+  Args = ComposeDirectiveDirectiveArgs,
+> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
+
+export type Federation__AuthenticatedDirectiveArgs = {};
+
+export type Federation__AuthenticatedDirectiveResolver<
+  Result,
+  Parent,
+  ContextType = any,
+  Args = Federation__AuthenticatedDirectiveArgs,
+> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
+
+export type Federation__ExtendsDirectiveArgs = {};
+
+export type Federation__ExtendsDirectiveResolver<
+  Result,
+  Parent,
+  ContextType = any,
+  Args = Federation__ExtendsDirectiveArgs,
+> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
+
+export type Federation__ExternalDirectiveArgs = {
+  reason?: Maybe<Scalars["String"]["input"]>;
+};
+
+export type Federation__ExternalDirectiveResolver<
+  Result,
+  Parent,
+  ContextType = any,
+  Args = Federation__ExternalDirectiveArgs,
+> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
+
+export type Federation__InaccessibleDirectiveArgs = {};
+
+export type Federation__InaccessibleDirectiveResolver<
+  Result,
+  Parent,
+  ContextType = any,
+  Args = Federation__InaccessibleDirectiveArgs,
+> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
+
+export type Federation__InterfaceObjectDirectiveArgs = {};
+
+export type Federation__InterfaceObjectDirectiveResolver<
+  Result,
+  Parent,
+  ContextType = any,
+  Args = Federation__InterfaceObjectDirectiveArgs,
+> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
+
+export type Federation__KeyDirectiveArgs = {
+  fields: Scalars["federation__FieldSet"]["input"];
+  resolvable?: Maybe<Scalars["Boolean"]["input"]>;
+};
+
+export type Federation__KeyDirectiveResolver<Result, Parent, ContextType = any, Args = Federation__KeyDirectiveArgs> = DirectiveResolverFn<
+  Result,
+  Parent,
+  ContextType,
+  Args
+>;
+
+export type Federation__OverrideDirectiveArgs = {
+  from: Scalars["String"]["input"];
+};
+
+export type Federation__OverrideDirectiveResolver<
+  Result,
+  Parent,
+  ContextType = any,
+  Args = Federation__OverrideDirectiveArgs,
+> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
+
+export type Federation__PolicyDirectiveArgs = {
+  policies: Array<Array<Scalars["federation__Policy"]["input"]>>;
+};
+
+export type Federation__PolicyDirectiveResolver<
+  Result,
+  Parent,
+  ContextType = any,
+  Args = Federation__PolicyDirectiveArgs,
+> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
+
+export type Federation__ProvidesDirectiveArgs = {
+  fields: Scalars["federation__FieldSet"]["input"];
+};
+
+export type Federation__ProvidesDirectiveResolver<
+  Result,
+  Parent,
+  ContextType = any,
+  Args = Federation__ProvidesDirectiveArgs,
+> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
+
+export type Federation__RequiresDirectiveArgs = {
+  fields: Scalars["federation__FieldSet"]["input"];
+};
+
+export type Federation__RequiresDirectiveResolver<
+  Result,
+  Parent,
+  ContextType = any,
+  Args = Federation__RequiresDirectiveArgs,
+> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
+
+export type Federation__RequiresScopesDirectiveArgs = {
+  scopes: Array<Array<Scalars["federation__Scope"]["input"]>>;
+};
+
+export type Federation__RequiresScopesDirectiveResolver<
+  Result,
+  Parent,
+  ContextType = any,
+  Args = Federation__RequiresScopesDirectiveArgs,
+> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
+
+export type Federation__ShareableDirectiveArgs = {};
+
+export type Federation__ShareableDirectiveResolver<
+  Result,
+  Parent,
+  ContextType = any,
+  Args = Federation__ShareableDirectiveArgs,
+> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
+
+export type Federation__TagDirectiveArgs = {
+  name: Scalars["String"]["input"];
+};
+
+export type Federation__TagDirectiveResolver<Result, Parent, ContextType = any, Args = Federation__TagDirectiveArgs> = DirectiveResolverFn<
+  Result,
+  Parent,
+  ContextType,
+  Args
+>;
+
+export type LinkDirectiveArgs = {
+  as?: Maybe<Scalars["String"]["input"]>;
+  for?: Maybe<Link__Purpose>;
+  import?: Maybe<Array<Maybe<Scalars["link__Import"]["input"]>>>;
+  url?: Maybe<Scalars["String"]["input"]>;
+};
+
+export type LinkDirectiveResolver<Result, Parent, ContextType = any, Args = LinkDirectiveArgs> = DirectiveResolverFn<
+  Result,
+  Parent,
+  ContextType,
+  Args
+>;
 
 export type PublicDirectiveArgs = {};
 
@@ -407,6 +597,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes["Query"] = ResolversParentTypes["Query"]> = {
+  _service?: Resolver<ResolversTypes["_Service"], ParentType, ContextType>;
   adminKvAsset?: Resolver<Maybe<ResolversTypes["AdminKvAsset"]>, ParentType, ContextType, RequireFields<QueryAdminKvAssetArgs, "input">>;
   userByEmail?: Resolver<Maybe<ResolversTypes["UserResponse"]>, ParentType, ContextType, RequireFields<QueryUserByEmailArgs, "input">>;
   userByfield?: Resolver<
@@ -484,6 +675,31 @@ export type UserSuccessResponseResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export interface _AnyScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes["_Any"], any> {
+  name: "_Any";
+}
+
+export type _ServiceResolvers<ContextType = any, ParentType extends ResolversParentTypes["_Service"] = ResolversParentTypes["_Service"]> = {
+  sdl?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export interface Federation__FieldSetScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes["federation__FieldSet"], any> {
+  name: "federation__FieldSet";
+}
+
+export interface Federation__PolicyScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes["federation__Policy"], any> {
+  name: "federation__Policy";
+}
+
+export interface Federation__ScopeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes["federation__Scope"], any> {
+  name: "federation__Scope";
+}
+
+export interface Link__ImportScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes["link__Import"], any> {
+  name: "link__Import";
+}
+
 export type Resolvers<ContextType = any> = {
   AdminKvAsset?: AdminKvAssetResolvers<ContextType>;
   DateTime?: GraphQLScalarType;
@@ -497,8 +713,29 @@ export type Resolvers<ContextType = any> = {
   User?: UserResolvers<ContextType>;
   UserResponse?: UserResponseResolvers<ContextType>;
   UserSuccessResponse?: UserSuccessResponseResolvers<ContextType>;
+  _Any?: GraphQLScalarType;
+  _Service?: _ServiceResolvers<ContextType>;
+  federation__FieldSet?: GraphQLScalarType;
+  federation__Policy?: GraphQLScalarType;
+  federation__Scope?: GraphQLScalarType;
+  link__Import?: GraphQLScalarType;
 };
 
 export type DirectiveResolvers<ContextType = any> = {
+  composeDirective?: ComposeDirectiveDirectiveResolver<any, any, ContextType>;
+  federation__authenticated?: Federation__AuthenticatedDirectiveResolver<any, any, ContextType>;
+  federation__extends?: Federation__ExtendsDirectiveResolver<any, any, ContextType>;
+  federation__external?: Federation__ExternalDirectiveResolver<any, any, ContextType>;
+  federation__inaccessible?: Federation__InaccessibleDirectiveResolver<any, any, ContextType>;
+  federation__interfaceObject?: Federation__InterfaceObjectDirectiveResolver<any, any, ContextType>;
+  federation__key?: Federation__KeyDirectiveResolver<any, any, ContextType>;
+  federation__override?: Federation__OverrideDirectiveResolver<any, any, ContextType>;
+  federation__policy?: Federation__PolicyDirectiveResolver<any, any, ContextType>;
+  federation__provides?: Federation__ProvidesDirectiveResolver<any, any, ContextType>;
+  federation__requires?: Federation__RequiresDirectiveResolver<any, any, ContextType>;
+  federation__requiresScopes?: Federation__RequiresScopesDirectiveResolver<any, any, ContextType>;
+  federation__shareable?: Federation__ShareableDirectiveResolver<any, any, ContextType>;
+  federation__tag?: Federation__TagDirectiveResolver<any, any, ContextType>;
+  link?: LinkDirectiveResolver<any, any, ContextType>;
   public?: PublicDirectiveResolver<any, any, ContextType>;
 };
