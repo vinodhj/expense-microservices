@@ -120,7 +120,7 @@ The gateway uses the Hive Gateway runtime with granular protection for authentic
 
 This implementation:
 
-- Initializes Redis for caching and performance
+- Initializes Redis for auth token versioning.
 - Creates authentication functions for user resolution and validation
 - Configures the gateway with protect-granular mode to selectively authenticate operations
 - Sets up the service router for forwarding requests to the appropriate services
@@ -248,14 +248,12 @@ function applyPublicDirectiveTransform(schema: GraphQLSchema): GraphQLSchema {
     [MapperKind.MUTATION_ROOT_FIELD]: (fieldConfig) => {
       const publicDirective = getDirective(schema, fieldConfig, "public")?.[0];
       if (publicDirective) {
-        console.log("Mutation fieldConfig", JSON.stringify(fieldConfig));
         return fieldConfig;
       }
     },
     [MapperKind.QUERY_ROOT_FIELD]: (fieldConfig) => {
       const publicDirective = getDirective(schema, fieldConfig, "public")?.[0];
       if (publicDirective) {
-        console.log("Query fieldConfig", JSON.stringify(fieldConfig));
         return fieldConfig;
       }
     },
