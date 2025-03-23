@@ -2,6 +2,7 @@ import { typeDefs } from "@src/types";
 import { resolvers as originalResolvers } from "@src/resolvers";
 import { buildSubgraphSchema } from "@apollo/subgraph";
 import { GraphQLResolverMap } from "@apollo/subgraph/dist/schema-helper";
+import { GraphQLSchema } from "graphql";
 
 // Create a type-safe version of the resolvers that preserves federation fields
 const sanitizeResolvers = (resolvers: any): GraphQLResolverMap<any> => {
@@ -31,7 +32,7 @@ const sanitizeResolvers = (resolvers: any): GraphQLResolverMap<any> => {
 // Use the sanitized resolvers with federation fields preserved
 const sanitizedResolvers = sanitizeResolvers(originalResolvers);
 
-export const schema = buildSubgraphSchema({
+export const schema: GraphQLSchema = buildSubgraphSchema({
   typeDefs,
   resolvers: sanitizedResolvers,
 });
