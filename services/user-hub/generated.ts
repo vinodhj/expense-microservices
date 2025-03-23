@@ -344,6 +344,15 @@ export type ResolversParentTypes = {
   UserSuccessResponse: UserSuccessResponse;
 };
 
+export type PublicDirectiveArgs = {};
+
+export type PublicDirectiveResolver<Result, Parent, ContextType = any, Args = PublicDirectiveArgs> = DirectiveResolverFn<
+  Result,
+  Parent,
+  ContextType,
+  Args
+>;
+
 export type AdminKvAssetResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes["AdminKvAsset"] = ResolversParentTypes["AdminKvAsset"],
@@ -488,4 +497,8 @@ export type Resolvers<ContextType = any> = {
   User?: UserResolvers<ContextType>;
   UserResponse?: UserResponseResolvers<ContextType>;
   UserSuccessResponse?: UserSuccessResponseResolvers<ContextType>;
+};
+
+export type DirectiveResolvers<ContextType = any> = {
+  public?: PublicDirectiveResolver<any, any, ContextType>;
 };

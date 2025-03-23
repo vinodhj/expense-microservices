@@ -1,6 +1,14 @@
 import { gql } from "graphql-tag";
 
+// extend schema
+// @link(url: "https://specs.apollo.dev/link/v1.0")
+// @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@composeDirective"])
+// @link(url: "https://the-guild.dev/graphql/mesh/spec/v1.0", import: ["@public"])
+// @composeDirective(name: "@public")
+
 export const typeDefs = gql`
+  directive @public on FIELD_DEFINITION
+
   scalar DateTime
   scalar JSON
 
@@ -155,12 +163,12 @@ export const typeDefs = gql`
     userByEmail(input: UserByEmailInput!): UserResponse
     userByfield(input: UserByFieldInput!): [UserResponse]
     users: [UserResponse]
-    adminKvAsset(input: AdminKvAssetInput!): AdminKvAsset
+    adminKvAsset(input: AdminKvAssetInput!): AdminKvAsset @public
   }
 
   type Mutation {
-    signUp(input: SignUpInput!): SignUpResponse!
-    login(input: LoginInput!): LoginResponse!
+    signUp(input: SignUpInput!): SignUpResponse! @public
+    login(input: LoginInput!): LoginResponse! @public
     editUser(input: EditUserInput!): EditUserResponse!
     deleteUser(input: DeleteUserInput!): Boolean!
     changePassword(input: ChangePasswordInput!): Boolean!

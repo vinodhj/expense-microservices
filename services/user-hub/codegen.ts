@@ -22,6 +22,7 @@ const config: CodegenConfig = {
         "X-Gateway-Timestamp": Date.now().toString(),
         "X-Gateway-Signature": process.env.GATEWAY_SIGNATURE ?? "",
         "X-Gateway-Nonce": nonce,
+        "X-Schema-Federation": "true",
       },
     },
   },
