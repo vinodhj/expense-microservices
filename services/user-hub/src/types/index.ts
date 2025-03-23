@@ -1,11 +1,6 @@
 import { gql } from "graphql-tag";
 
 export const typeDefs = gql`
-  extend schema
-    @link(url: "https://specs.apollo.dev/link/v1.0")
-    @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@composeDirective"])
-    @link(url: "https://the-guild.dev/graphql/mesh/spec/v1.0", import: ["@public"])
-    @composeDirective(name: "@public")
   directive @public on FIELD_DEFINITION
 
   scalar DateTime
