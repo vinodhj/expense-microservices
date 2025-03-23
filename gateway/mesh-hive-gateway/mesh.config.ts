@@ -29,50 +29,27 @@ function random16() {
 
 const nonce = random16();
 
-// Define public directive transformer
-const publicDirectiveTransformer = (schema: GraphQLSchema): GraphQLSchema => {
-  return mapSchema(schema, {
-    [MapperKind.MUTATION_ROOT_FIELD]: (fieldConfig) => {
-      const publicDirective = getDirective(schema, fieldConfig, "public")?.[0];
-
-      if (publicDirective) {
-        console.log("Mutation directive", publicDirective);
-        // Implement your public directive logic here
-        return fieldConfig;
-      }
-    },
-    [MapperKind.QUERY_ROOT_FIELD]: (fieldConfig) => {
-      const publicDirective = getDirective(schema, fieldConfig, "public")?.[0];
-
-      if (publicDirective) {
-        // Implement your public directive logic here
-        return fieldConfig;
-      }
-    },
-  });
-};
-
 export const composeConfig: MeshComposeCLIConfig = defineComposeConfig({
-  // Add custom directives at the top level
-  additionalTypeDefs: `
-    directive @public on FIELD_DEFINITION
-    directive @auth(roles: [Role!]) on FIELD_DEFINITION
+  // // Add custom directives at the top level
+  // additionalTypeDefs: `
+  //   directive @public on FIELD_DEFINITION
+  //   directive @auth(roles: [Role!]) on FIELD_DEFINITION
 
-    enum Role {
-      ADMIN
-      USER
-    }
-    type SessionUser {
-      id: String!
-      email: String!
-      name: String!
-      role: Role!
-    }
+  //   enum Role {
+  //     ADMIN
+  //     USER
+  //   }
+  //   type SessionUser {
+  //     id: String!
+  //     email: String!
+  //     name: String!
+  //     role: Role!
+  //   }
 
-    extend type Query {
-      current_session_user: SessionUser @auth
-    }
-  `,
+  //   extend type Query {
+  //     current_session_user: SessionUser @auth
+  //   }
+  // `,
   subgraphs: [
     {
       sourceHandler: loadGraphQLHTTPSubgraph("UserService", {
@@ -102,7 +79,6 @@ export const composeConfig: MeshComposeCLIConfig = defineComposeConfig({
         timeout: 10000,
       }),
       transforms: [
-        publicDirectiveTransformer,
         // createPrefixTransform({
         //   value: "USER_",
         //   includeRootOperations: true,
@@ -110,11 +86,13 @@ export const composeConfig: MeshComposeCLIConfig = defineComposeConfig({
       ],
     },
   ],
-  // alwaysAddTransportDirective: true,
 });
 
 export const gatewayConfig = defineGatewayConfig({
   pollingInterval: 5_000,
   cors: { credentials: true },
   plugins: (ctx) => [],
+  // additionalResolvers: {
+  //   publicDirectiveTransformer,
+  // },
 });

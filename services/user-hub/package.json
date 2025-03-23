@@ -30,6 +30,7 @@
     "wrangler": "^4.1.0"
   },
   "dependencies": {
+    "@apollo/subgraph": "^2.10.0",
     "@envelop/core": "^5.2.3",
     "@upstash/redis": "^1.34.5",
     "bcryptjs": "^2.4.3",

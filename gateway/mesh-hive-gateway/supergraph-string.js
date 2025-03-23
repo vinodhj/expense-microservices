@@ -2,10 +2,7 @@ export const supergraphSdl = /* GraphQL */ `
   schema
     @link(url: "https://specs.apollo.dev/link/v1.0")
     @link(url: "https://specs.apollo.dev/join/v0.3", for: EXECUTION)
-    @link(
-      url: "https://the-guild.dev/graphql/mesh/spec/v1.0"
-      import: ["@public", "@transport", "@source", "@extraSchemaDefinitionDirective"]
-    ) {
+    @link(url: "https://the-guild.dev/graphql/mesh/spec/v1.0", import: ["@public", "@transport", "@extraSchemaDefinitionDirective"]) {
     query: Query
     mutation: Mutation
   }
@@ -36,9 +33,25 @@ export const supergraphSdl = /* GraphQL */ `
 
   directive @join__unionMember(graph: join__Graph!, member: String!) repeatable on UNION
 
-  scalar join__FieldSet
-
   directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
+
+  directive @public on FIELD_DEFINITION
+
+  directive @transport(
+    kind: String!
+    subgraph: String!
+    location: String!
+    headers: [[String]]
+    options: TransportOptions
+  ) repeatable on SCHEMA
+
+  directive @extraSchemaDefinitionDirective(directives: _DirectiveExtensions) repeatable on OBJECT
+
+  directive @additionalField on FIELD_DEFINITION
+
+  directive @auth(roles: [Role!]) on FIELD_DEFINITION
+
+  scalar join__FieldSet
 
   scalar link__Import
 
@@ -53,67 +66,49 @@ export const supergraphSdl = /* GraphQL */ `
     USER_SERVICE @join__graph(name: "UserService", url: "http://localhost:8501/graphql")
   }
 
-  directive @public on FIELD_DEFINITION
+  scalar DateTime @join__type(graph: USER_SERVICE)
 
-  directive @transport(
-    kind: String!
-    subgraph: String!
-    location: String!
-    headers: [[String]]
-    options: USER_TransportOptions
-  ) repeatable on SCHEMA
+  scalar JSON @join__type(graph: USER_SERVICE)
 
-  directive @source(
-    name: String!
-    type: String
-    subgraph: String!
-  ) repeatable on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
-
-  directive @extraSchemaDefinitionDirective(directives: _DirectiveExtensions) repeatable on OBJECT
-
-  scalar USER_DateTime @source(name: "DateTime", subgraph: "UserService") @join__type(graph: USER_SERVICE)
-
-  scalar USER_JSON @source(name: "JSON", subgraph: "UserService") @join__type(graph: USER_SERVICE)
-
-  scalar USER_TransportOptions @source(name: "TransportOptions", subgraph: "UserService") @join__type(graph: USER_SERVICE)
+  scalar TransportOptions @join__type(graph: USER_SERVICE)
 
   scalar _DirectiveExtensions @join__type(graph: USER_SERVICE)
 
-  type USER_User @source(name: "User", subgraph: "UserService") @join__type(graph: USER_SERVICE) {
+  type User @join__type(graph: USER_SERVICE) {
     id: ID!
     name: String!
     email: String!
     password: String!
-    role: USER_Role! @source(name: "role", type: "Role!", subgraph: "UserService")
+    role: Role!
     phone: String!
     address: String
     city: String
     state: String
     country: String
     zipcode: String
-    created_at: USER_DateTime! @source(name: "created_at", type: "DateTime!", subgraph: "UserService")
-    updated_at: USER_DateTime! @source(name: "updated_at", type: "DateTime!", subgraph: "UserService")
+    created_at: DateTime!
+    updated_at: DateTime!
     created_by: String!
     updated_by: String!
   }
 
-  type USER_SignUpResponse @source(name: "SignUpResponse", subgraph: "UserService") @join__type(graph: USER_SERVICE) {
+  type SignUpResponse @join__type(graph: USER_SERVICE) {
     success: Boolean!
-    user: USER_UserSuccessResponse @source(name: "user", type: "UserSuccessResponse", subgraph: "UserService")
+    user: UserSuccessResponse
   }
 
-  type USER_LoginResponse @source(name: "LoginResponse", subgraph: "UserService") @join__type(graph: USER_SERVICE) {
+  type LoginResponse @join__type(graph: USER_SERVICE) {
     success: Boolean!
     token: String
-    user: USER_UserSuccessResponse @source(name: "user", type: "UserSuccessResponse", subgraph: "UserService")
+    user: UserSuccessResponse
   }
 
-  type USER_UserSuccessResponse @source(name: "UserSuccessResponse", subgraph: "UserService") @join__type(graph: USER_SERVICE) {
+  type UserSuccessResponse @join__type(graph: USER_SERVICE) {
     id: ID!
     name: String!
     email: String!
     phone: String!
-    role: USER_Role! @source(name: "role", type: "Role!", subgraph: "UserService")
+    role: Role!
     address: String
     city: String
     state: String
@@ -121,39 +116,38 @@ export const supergraphSdl = /* GraphQL */ `
     zipcode: String
   }
 
-  type USER_UserResponse @source(name: "UserResponse", subgraph: "UserService") @join__type(graph: USER_SERVICE) {
+  type UserResponse @join__type(graph: USER_SERVICE) {
     id: ID!
     name: String!
     email: String!
-    role: USER_Role! @source(name: "role", type: "Role!", subgraph: "UserService")
+    role: Role!
     phone: String!
     address: String
     city: String
     state: String
     country: String
     zipcode: String
-    created_at: USER_DateTime! @source(name: "created_at", type: "DateTime!", subgraph: "UserService")
-    updated_at: USER_DateTime! @source(name: "updated_at", type: "DateTime!", subgraph: "UserService")
+    created_at: DateTime!
+    updated_at: DateTime!
     created_by: String!
     updated_by: String!
   }
 
-  type USER_EditUserResponse @source(name: "EditUserResponse", subgraph: "UserService") @join__type(graph: USER_SERVICE) {
+  type EditUserResponse @join__type(graph: USER_SERVICE) {
     success: Boolean!
-    user: USER_UserSuccessResponse @source(name: "user", type: "UserSuccessResponse", subgraph: "UserService")
+    user: UserSuccessResponse
   }
 
-  type USER_LogoutResponse @source(name: "LogoutResponse", subgraph: "UserService") @join__type(graph: USER_SERVICE) {
+  type LogoutResponse @join__type(graph: USER_SERVICE) {
     success: Boolean!
   }
 
-  type USER_AdminKvAsset @source(name: "AdminKvAsset", subgraph: "UserService") @join__type(graph: USER_SERVICE) {
+  type AdminKvAsset @join__type(graph: USER_SERVICE) {
     kv_key: String!
-    kv_value: USER_JSON @source(name: "kv_value", type: "JSON", subgraph: "UserService")
+    kv_value: JSON
   }
 
   type Query
-    @source(name: "Query", subgraph: "UserService")
     @extraSchemaDefinitionDirective(
       directives: {
         transport: [
@@ -178,36 +172,28 @@ export const supergraphSdl = /* GraphQL */ `
       }
     )
     @join__type(graph: USER_SERVICE) {
-    userByEmail(
-      input: USER_UserByEmailInput! @source(name: "input", type: "UserByEmailInput!", subgraph: "UserService")
-    ): USER_UserResponse @source(name: "userByEmail", type: "UserResponse", subgraph: "UserService")
-    userByfield(
-      input: USER_UserByFieldInput! @source(name: "input", type: "UserByFieldInput!", subgraph: "UserService")
-    ): [USER_UserResponse] @source(name: "userByfield", type: "[UserResponse]", subgraph: "UserService")
-    users: [USER_UserResponse] @source(name: "users", type: "[UserResponse]", subgraph: "UserService")
-    adminKvAsset(
-      input: USER_AdminKvAssetInput! @source(name: "input", type: "AdminKvAssetInput!", subgraph: "UserService")
-    ): USER_AdminKvAsset @source(name: "adminKvAsset", type: "AdminKvAsset", subgraph: "UserService")
+    userByEmail(input: UserByEmailInput!): UserResponse
+    userByfield(input: UserByFieldInput!): [UserResponse]
+    users: [UserResponse]
+    adminKvAsset(input: AdminKvAssetInput!): AdminKvAsset @public
+    current_session_user: SessionUser @auth @additionalField
   }
 
-  type Mutation @source(name: "Mutation", subgraph: "UserService") @join__type(graph: USER_SERVICE) {
-    signUp(input: USER_SignUpInput! @source(name: "input", type: "SignUpInput!", subgraph: "UserService")): USER_SignUpResponse!
-      @source(name: "signUp", type: "SignUpResponse!", subgraph: "UserService")
-    login(input: USER_LoginInput! @source(name: "input", type: "LoginInput!", subgraph: "UserService")): USER_LoginResponse!
-      @source(name: "login", type: "LoginResponse!", subgraph: "UserService")
-    editUser(input: USER_EditUserInput! @source(name: "input", type: "EditUserInput!", subgraph: "UserService")): USER_EditUserResponse!
-      @source(name: "editUser", type: "EditUserResponse!", subgraph: "UserService")
-    deleteUser(input: USER_DeleteUserInput! @source(name: "input", type: "DeleteUserInput!", subgraph: "UserService")): Boolean!
-    changePassword(input: USER_ChangePasswordInput! @source(name: "input", type: "ChangePasswordInput!", subgraph: "UserService")): Boolean!
-    logout: USER_LogoutResponse! @source(name: "logout", type: "LogoutResponse!", subgraph: "UserService")
+  type Mutation @join__type(graph: USER_SERVICE) {
+    signUp(input: SignUpInput!): SignUpResponse! @public
+    login(input: LoginInput!): LoginResponse! @public
+    editUser(input: EditUserInput!): EditUserResponse!
+    deleteUser(input: DeleteUserInput!): Boolean!
+    changePassword(input: ChangePasswordInput!): Boolean!
+    logout: LogoutResponse!
   }
 
-  enum USER_Role @source(name: "Role", subgraph: "UserService") @join__type(graph: USER_SERVICE) {
+  enum Role @join__type(graph: USER_SERVICE) {
     ADMIN @join__enumValue(graph: USER_SERVICE)
     USER @join__enumValue(graph: USER_SERVICE)
   }
 
-  enum USER_ColumnName @source(name: "ColumnName", subgraph: "UserService") @join__type(graph: USER_SERVICE) {
+  enum ColumnName @join__type(graph: USER_SERVICE) {
     id @join__enumValue(graph: USER_SERVICE)
     name @join__enumValue(graph: USER_SERVICE)
     email @join__enumValue(graph: USER_SERVICE)
@@ -220,12 +206,12 @@ export const supergraphSdl = /* GraphQL */ `
     zipcode @join__enumValue(graph: USER_SERVICE)
   }
 
-  input USER_SignUpInput @source(name: "SignUpInput", subgraph: "UserService") @join__type(graph: USER_SERVICE) {
+  input SignUpInput @join__type(graph: USER_SERVICE) {
     name: String!
     email: String!
     password: String!
     phone: String!
-    role: USER_Role @source(name: "role", type: "Role", subgraph: "UserService")
+    role: Role
     address: String
     city: String
     state: String
@@ -233,30 +219,30 @@ export const supergraphSdl = /* GraphQL */ `
     zipcode: String
   }
 
-  input USER_LoginInput @source(name: "LoginInput", subgraph: "UserService") @join__type(graph: USER_SERVICE) {
+  input LoginInput @join__type(graph: USER_SERVICE) {
     email: String!
     password: String!
   }
 
-  input USER_UserByEmailInput @source(name: "UserByEmailInput", subgraph: "UserService") @join__type(graph: USER_SERVICE) {
+  input UserByEmailInput @join__type(graph: USER_SERVICE) {
     email: String!
   }
 
-  input USER_UserByFieldInput @source(name: "UserByFieldInput", subgraph: "UserService") @join__type(graph: USER_SERVICE) {
-    field: USER_ColumnName! @source(name: "field", type: "ColumnName!", subgraph: "UserService")
+  input UserByFieldInput @join__type(graph: USER_SERVICE) {
+    field: ColumnName!
     value: String!
   }
 
-  input USER_DeleteUserInput @source(name: "DeleteUserInput", subgraph: "UserService") @join__type(graph: USER_SERVICE) {
+  input DeleteUserInput @join__type(graph: USER_SERVICE) {
     id: ID!
   }
 
-  input USER_EditUserInput @source(name: "EditUserInput", subgraph: "UserService") @join__type(graph: USER_SERVICE) {
+  input EditUserInput @join__type(graph: USER_SERVICE) {
     id: ID!
     name: String!
     email: String!
     phone: String!
-    role: USER_Role @source(name: "role", type: "Role", subgraph: "UserService")
+    role: Role
     address: String
     city: String
     state: String
@@ -264,14 +250,21 @@ export const supergraphSdl = /* GraphQL */ `
     zipcode: String
   }
 
-  input USER_ChangePasswordInput @source(name: "ChangePasswordInput", subgraph: "UserService") @join__type(graph: USER_SERVICE) {
+  input ChangePasswordInput @join__type(graph: USER_SERVICE) {
     id: ID!
     current_password: String!
     new_password: String!
     confirm_password: String!
   }
 
-  input USER_AdminKvAssetInput @source(name: "AdminKvAssetInput", subgraph: "UserService") @join__type(graph: USER_SERVICE) {
+  input AdminKvAssetInput @join__type(graph: USER_SERVICE) {
     kv_key: String!
+  }
+
+  type SessionUser {
+    id: String! @additionalField
+    email: String! @additionalField
+    name: String! @additionalField
+    role: Role! @additionalField
   }
 `;

@@ -6,6 +6,32 @@ import { createAuthFunctions } from "./auth-functions";
 import { createServiceRouter } from "./service-router";
 import { Redis } from "@upstash/redis/cloudflare";
 
+import { GraphQLSchema } from "graphql";
+import { mapSchema, getDirective, MapperKind } from "@graphql-tools/utils";
+
+// Define public directive transformer
+const publicDirectiveTransformer = (schema: GraphQLSchema): GraphQLSchema => {
+  return mapSchema(schema, {
+    [MapperKind.MUTATION_ROOT_FIELD]: (fieldConfig) => {
+      const publicDirective = getDirective(schema, fieldConfig, "public")?.[0];
+
+      if (publicDirective) {
+        console.log("Mutation directive", publicDirective);
+        // Implement your public directive logic here
+        return fieldConfig;
+      }
+    },
+    [MapperKind.QUERY_ROOT_FIELD]: (fieldConfig) => {
+      const publicDirective = getDirective(schema, fieldConfig, "public")?.[0];
+
+      if (publicDirective) {
+        // Implement your public directive logic here
+        return fieldConfig;
+      }
+    },
+  });
+};
+
 // Gateway setup
 export const initializeGateway = (env: Env) => {
   try {

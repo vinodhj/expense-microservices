@@ -84,6 +84,7 @@ export const createAuthFunctions = (env: Env, redis: Redis) => {
    */
 
   const validateUser: ValidateUserFn<any> = ({ user, executionArgs }) => {
+    console.log("executionArgs", JSON.stringify(executionArgs, null, 2) + "\n");
     // Check if this operation requires auth
     const publicOperations = ["login", "signUp"];
     const operationName = executionArgs.operationName ?? "";
