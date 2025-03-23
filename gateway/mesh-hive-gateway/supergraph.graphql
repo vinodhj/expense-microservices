@@ -9,7 +9,7 @@ schema
   
   @link(
   url: "https://the-guild.dev/graphql/mesh/spec/v1.0"
-  import: ["@transport", "@extraSchemaDefinitionDirective"]
+  import: ["@public", "@transport", "@extraSchemaDefinitionDirective"]
 )
 {
   query: Query
@@ -80,6 +80,8 @@ schema
 enum join__Graph {
   USER_SERVICE @join__graph(name: "UserService", url: "http://localhost:8501/graphql") 
 }
+
+directive @public on FIELD_DEFINITION
 
 directive @transport(
   kind: String!
@@ -182,8 +184,8 @@ type Query @extraSchemaDefinitionDirective(
 }
 
 type Mutation @join__type(graph: USER_SERVICE)  {
-  signUp(input: SignUpInput!) : SignUpResponse!
-  login(input: LoginInput!) : LoginResponse!
+  signUp(input: SignUpInput!) : SignUpResponse! @public
+  login(input: LoginInput!) : LoginResponse! @public
   editUser(input: EditUserInput!) : EditUserResponse!
   deleteUser(input: DeleteUserInput!) : Boolean!
   changePassword(input: ChangePasswordInput!) : Boolean!

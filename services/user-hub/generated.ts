@@ -16,6 +16,8 @@ export type Scalars = {
   Float: { input: number; output: number };
   DateTime: { input: any; output: any };
   JSON: { input: any; output: any };
+  _Any: { input: any; output: any };
+  _FieldSet: { input: any; output: any };
 };
 
 export type AdminKvAsset = {
@@ -120,6 +122,7 @@ export type MutationSignUpArgs = {
 
 export type Query = {
   __typename?: "Query";
+  _service: _Service;
   adminKvAsset?: Maybe<AdminKvAsset>;
   userByEmail?: Maybe<UserResponse>;
   userByfield?: Maybe<Array<Maybe<UserResponse>>>;
@@ -222,6 +225,11 @@ export type UserSuccessResponse = {
   zipcode?: Maybe<Scalars["String"]["output"]>;
 };
 
+export type _Service = {
+  __typename?: "_Service";
+  sdl?: Maybe<Scalars["String"]["output"]>;
+};
+
 export type ResolverTypeWrapper<T> = Promise<T> | T;
 
 export type ResolverWithResolve<TResult, TParent, TContext, TArgs> = {
@@ -315,6 +323,9 @@ export type ResolversTypes = {
   UserByFieldInput: UserByFieldInput;
   UserResponse: ResolverTypeWrapper<UserResponse>;
   UserSuccessResponse: ResolverTypeWrapper<UserSuccessResponse>;
+  _Any: ResolverTypeWrapper<Scalars["_Any"]["output"]>;
+  _FieldSet: ResolverTypeWrapper<Scalars["_FieldSet"]["output"]>;
+  _Service: ResolverTypeWrapper<_Service>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -342,7 +353,84 @@ export type ResolversParentTypes = {
   UserByFieldInput: UserByFieldInput;
   UserResponse: UserResponse;
   UserSuccessResponse: UserSuccessResponse;
+  _Any: Scalars["_Any"]["output"];
+  _FieldSet: Scalars["_FieldSet"]["output"];
+  _Service: _Service;
 };
+
+export type ExtendsDirectiveArgs = {};
+
+export type ExtendsDirectiveResolver<Result, Parent, ContextType = any, Args = ExtendsDirectiveArgs> = DirectiveResolverFn<
+  Result,
+  Parent,
+  ContextType,
+  Args
+>;
+
+export type ExternalDirectiveArgs = {
+  reason?: Maybe<Scalars["String"]["input"]>;
+};
+
+export type ExternalDirectiveResolver<Result, Parent, ContextType = any, Args = ExternalDirectiveArgs> = DirectiveResolverFn<
+  Result,
+  Parent,
+  ContextType,
+  Args
+>;
+
+export type KeyDirectiveArgs = {
+  fields: Scalars["_FieldSet"]["input"];
+  resolvable?: Maybe<Scalars["Boolean"]["input"]>;
+};
+
+export type KeyDirectiveResolver<Result, Parent, ContextType = any, Args = KeyDirectiveArgs> = DirectiveResolverFn<
+  Result,
+  Parent,
+  ContextType,
+  Args
+>;
+
+export type ProvidesDirectiveArgs = {
+  fields: Scalars["_FieldSet"]["input"];
+};
+
+export type ProvidesDirectiveResolver<Result, Parent, ContextType = any, Args = ProvidesDirectiveArgs> = DirectiveResolverFn<
+  Result,
+  Parent,
+  ContextType,
+  Args
+>;
+
+export type PublicDirectiveArgs = {};
+
+export type PublicDirectiveResolver<Result, Parent, ContextType = any, Args = PublicDirectiveArgs> = DirectiveResolverFn<
+  Result,
+  Parent,
+  ContextType,
+  Args
+>;
+
+export type RequiresDirectiveArgs = {
+  fields: Scalars["_FieldSet"]["input"];
+};
+
+export type RequiresDirectiveResolver<Result, Parent, ContextType = any, Args = RequiresDirectiveArgs> = DirectiveResolverFn<
+  Result,
+  Parent,
+  ContextType,
+  Args
+>;
+
+export type TagDirectiveArgs = {
+  name: Scalars["String"]["input"];
+};
+
+export type TagDirectiveResolver<Result, Parent, ContextType = any, Args = TagDirectiveArgs> = DirectiveResolverFn<
+  Result,
+  Parent,
+  ContextType,
+  Args
+>;
 
 export type AdminKvAssetResolvers<
   ContextType = any,
@@ -398,6 +486,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes["Query"] = ResolversParentTypes["Query"]> = {
+  _service?: Resolver<ResolversTypes["_Service"], ParentType, ContextType>;
   adminKvAsset?: Resolver<Maybe<ResolversTypes["AdminKvAsset"]>, ParentType, ContextType, RequireFields<QueryAdminKvAssetArgs, "input">>;
   userByEmail?: Resolver<Maybe<ResolversTypes["UserResponse"]>, ParentType, ContextType, RequireFields<QueryUserByEmailArgs, "input">>;
   userByfield?: Resolver<
@@ -475,6 +564,19 @@ export type UserSuccessResponseResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export interface _AnyScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes["_Any"], any> {
+  name: "_Any";
+}
+
+export interface _FieldSetScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes["_FieldSet"], any> {
+  name: "_FieldSet";
+}
+
+export type _ServiceResolvers<ContextType = any, ParentType extends ResolversParentTypes["_Service"] = ResolversParentTypes["_Service"]> = {
+  sdl?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type Resolvers<ContextType = any> = {
   AdminKvAsset?: AdminKvAssetResolvers<ContextType>;
   DateTime?: GraphQLScalarType;
@@ -488,4 +590,17 @@ export type Resolvers<ContextType = any> = {
   User?: UserResolvers<ContextType>;
   UserResponse?: UserResponseResolvers<ContextType>;
   UserSuccessResponse?: UserSuccessResponseResolvers<ContextType>;
+  _Any?: GraphQLScalarType;
+  _FieldSet?: GraphQLScalarType;
+  _Service?: _ServiceResolvers<ContextType>;
+};
+
+export type DirectiveResolvers<ContextType = any> = {
+  extends?: ExtendsDirectiveResolver<any, any, ContextType>;
+  external?: ExternalDirectiveResolver<any, any, ContextType>;
+  key?: KeyDirectiveResolver<any, any, ContextType>;
+  provides?: ProvidesDirectiveResolver<any, any, ContextType>;
+  public?: PublicDirectiveResolver<any, any, ContextType>;
+  requires?: RequiresDirectiveResolver<any, any, ContextType>;
+  tag?: TagDirectiveResolver<any, any, ContextType>;
 };

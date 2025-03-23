@@ -2,7 +2,7 @@ export const supergraphSdl = /* GraphQL */ `
   schema
     @link(url: "https://specs.apollo.dev/link/v1.0")
     @link(url: "https://specs.apollo.dev/join/v0.3", for: EXECUTION)
-    @link(url: "https://the-guild.dev/graphql/mesh/spec/v1.0", import: ["@transport", "@extraSchemaDefinitionDirective"]) {
+    @link(url: "https://the-guild.dev/graphql/mesh/spec/v1.0", import: ["@public", "@transport", "@extraSchemaDefinitionDirective"]) {
     query: Query
     mutation: Mutation
   }
@@ -49,6 +49,8 @@ export const supergraphSdl = /* GraphQL */ `
   enum join__Graph {
     USER_SERVICE @join__graph(name: "UserService", url: "http://localhost:8501/graphql")
   }
+
+  directive @public on FIELD_DEFINITION
 
   directive @transport(
     kind: String!
@@ -173,8 +175,8 @@ export const supergraphSdl = /* GraphQL */ `
   }
 
   type Mutation @join__type(graph: USER_SERVICE) {
-    signUp(input: SignUpInput!): SignUpResponse!
-    login(input: LoginInput!): LoginResponse!
+    signUp(input: SignUpInput!): SignUpResponse! @public
+    login(input: LoginInput!): LoginResponse! @public
     editUser(input: EditUserInput!): EditUserResponse!
     deleteUser(input: DeleteUserInput!): Boolean!
     changePassword(input: ChangePasswordInput!): Boolean!

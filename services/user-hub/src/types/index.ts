@@ -1,6 +1,8 @@
 import { gql } from "graphql-tag";
 
 export const typeDefs = gql`
+  directive @public on FIELD_DEFINITION
+
   scalar DateTime
   scalar JSON
 
@@ -159,8 +161,8 @@ export const typeDefs = gql`
   }
 
   type Mutation {
-    signUp(input: SignUpInput!): SignUpResponse!
-    login(input: LoginInput!): LoginResponse!
+    signUp(input: SignUpInput!): SignUpResponse! @public
+    login(input: LoginInput!): LoginResponse! @public
     editUser(input: EditUserInput!): EditUserResponse!
     deleteUser(input: DeleteUserInput!): Boolean!
     changePassword(input: ChangePasswordInput!): Boolean!
