@@ -55,6 +55,9 @@ export const composeConfig = defineComposeConfig({
 });
 
 export const gatewayConfig = defineGatewayConfig({
+  pollingInterval: 5_000,
   cors: { credentials: true },
   plugins: (ctx) => [],
+  productName: "Mesh Hive Gateway",
+  productDescription: "A mesh hive gateway for GraphQL federation.",
 });

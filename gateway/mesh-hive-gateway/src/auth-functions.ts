@@ -3,6 +3,7 @@ import { jwtVerifyToken } from "./helper/jwt-verify-token";
 import crypto from "crypto";
 import { GraphQLError } from "graphql";
 import { Redis } from "@upstash/redis/cloudflare";
+import { isPublicOperation } from "./helper/public-operation";
 
 // Auth functions factory
 export const createAuthFunctions = (env: Env, redis: Redis) => {
@@ -77,21 +78,14 @@ export const createAuthFunctions = (env: Env, redis: Redis) => {
    * For non-public operations, it checks if the user is authenticated.
    * If the user is null, it throws a GraphQLError indicating authentication failure with a 401 status code.
    *
-   * @param {object} params - The parameters object.
-   * @param {any} params.user - The user object extracted from the session.
-   * @param {any} params.executionArgs - The GraphQL execution arguments, including the operation name.
-   * @throws {GraphQLError} If authentication fails for non-public operations.
    */
-
   const validateUser: ValidateUserFn<any> = ({ user, executionArgs }) => {
-    // Check if this operation requires auth
-    const publicOperations = ["login", "signUp"];
-    const operationName = executionArgs.operationName ?? "";
-    if (publicOperations.includes(operationName)) {
+    // If the operation is public, return immediately (no auth required)
+    if (isPublicOperation(executionArgs)) {
       return; // Allow public operations (returning void means valid)
     }
 
-    // Validate auth token
+    // Otherwise, validate authentication
     if (user === null) {
       throw new GraphQLError("Authentication failed for non-public operation", {
         extensions: {
