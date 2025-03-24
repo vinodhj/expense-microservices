@@ -22,7 +22,7 @@ The User Service is a microservice in our architecture that provides user manage
 - **D1 Database**: Cloudflare's SQL database
 - **GraphQL (Yoga)**: API query language and runtime
 - **Drizzle ORM**: Database toolkit for TypeScript
-- **Upstash Redis**: Distributed Redis for caching and nonce tracking
+- **Upstash Redis**: Distributed Redis for auth token versioning and nonce tracking
 
 ## Architecture Overview
 
@@ -47,8 +47,8 @@ flowchart TB
         GraphQLHandler --> GraphQLPlugins[GraphQL Plugins]
         GraphQLHandler --> Resolvers[Resolvers]
 
-        Resolvers --> DataSources[Data Sources]
-        DataSources --> Services[Service Layer]
+        Resolvers -->  Services[Service Layer]
+        Services --> DataSources[Data Sources]
     end
 
     class UserService,Client,Gateway,DB,Redis,KV,Worker highlight
@@ -70,16 +70,17 @@ sequenceDiagram
         SecurityMiddleware->>UserService: Headers Valid
 
         UserService->>GraphQLPlugins: Execute Plugins
-        GraphQLPlugins->>Redis: Check Nonce
+        GraphQLPlugins->>Redis: Check Nonce(If nonce is enabled)
         Redis->>GraphQLPlugins: Nonce Status
 
         UserService->>Resolvers: Execute GraphQL Operation
-        Resolvers->>DataSources: Fetch/Update Data
+        Resolvers->>ServiceAPI: Call service API
+        ServiceAPI->>DataSources: Fetch/Update Data
         DataSources->>DB: Database Operations
         DB->>DataSources: Data Results
         DataSources->>Resolvers: Return Data
 
-        GraphQLPlugins->>Redis: Store Used Nonce
+        GraphQLPlugins->>Redis: Store Used Nonce(If nonce is enabled)
         UserService->>UserService: Apply CORS Headers
     else KV Sync
         UserService->>UserService: Validate KV Sync Token
@@ -102,14 +103,14 @@ sequenceDiagram
 ### Installation
 
 1. Clone the repository
-2. Install dependencies: `npm install` or `yarn install`
+2. Install dependencies: `bun install`
 3. Set up environment variables (see below)
 
 ### Environment Variables
 
 Required environment variables:
 
-- `ENVIRONMENT`: Environment mode (DEV, STAGING, PRODUCTION)
+- `ENVIRONMENT`: Environment mode (DEV, STAGING, PROD)
 - `PROJECT_TOKEN`: API access token
 - `JWT_SECRET`: Secret for JWT operations
 - `GATEWAY_SECRET`: Secret for gateway signature validation
@@ -164,8 +165,9 @@ The main interface for interacting with user data. Provides queries and mutation
 
 ```graphql
 # Query user information
-query GetUser($id: ID!) {
-  user(id: $id) {
+query AllUsers($id: ID!) {
+  users(id: $id) {
+    __typename
     id
     name
     email
@@ -174,11 +176,16 @@ query GetUser($id: ID!) {
 }
 
 # Create a new user
-mutation CreateUser($input: CreateUserInput!) {
-  createUser(input: $input) {
-    id
-    name
-    email
+mutation signUp($input: SignUpInput!) {
+  signUp(input: $input) {
+    success
+    user {
+      __typename
+      email
+      id
+      name
+      role
+    }
   }
 }
 ```
@@ -205,7 +212,7 @@ flowchart TD
     F -->|No| G[408 Request Timeout]
     F -->|Yes| H{Is Signature Valid?}
     H -->|No| C
-    H -->|Yes| I{Is Nonce Unique?}
+    H -->|Yes| I{Is Nonce is enabled in env and Unique?}
     I -->|No| J[401 Replay Attack]
     I -->|Yes| K[Process Request]
 ```
@@ -254,7 +261,7 @@ The service extracts user context from headers to create a session:
 ```typescript
 type SessionUserType = {
   id: string;
-  role: Role; // Admin or User
+  role: Role; // ADMIN or USER
   email: string;
   name: string;
 } | null;
@@ -288,7 +295,7 @@ flowchart TD
 
 ## Core Components
 
-### Main Worker Handler (`worker.ts`)
+### Main Worker Handler
 
 Entry point for all requests, routing to appropriate handlers based on URL paths.
 
@@ -389,37 +396,37 @@ Handles Cross-Origin Resource Sharing (CORS) headers and preflight requests.
 6. **Request Processing**: Execute GraphQL operation or KV sync
 7. **Response Generation**: Format response with appropriate CORS headers
 
-## Directory Structure
+## Directory Structure (src/directory)
 
 ```
 ├── handlers/
-│   ├── graphql.ts            # GraphQL request handler
-│   ├── kv-sync.ts            # KV synchronization handler
-│   └── graphql-plugins.ts    # GraphQL plugins for nonce and metrics
+│   ├── graphql.ts             # GraphQL request handler
+│   ├── kv-sync.ts             # KV synchronization handler
+│   ├── security-middleware.ts # Security validation middleware
+│   └── graphql-plugins.ts     # GraphQL plugins for nonce and metrics
 ├── services/
-│   ├── index.ts              # Service exports
-│   ├── auth-service.ts       # Authentication services
-│   ├── user-service.ts       # User management services
-│   └── kv-storage-service.ts # KV storage services
+│   ├── helper                 # Helper file for jwt, validator
+│   ├── index.ts               # Service exports
+│   ├── auth-service.ts        # Authentication services
+│   ├── user-service.ts        # User management services
+│   └── kv-storage-service.ts  # KV storage services
 ├── schemas/
-│   ├── index.ts              # Schema exports
-│   ├── user.graphql          # User entity schema
-│   └── auth.graphql          # Authentication schema
+│   └── index.ts               # Schema exports
 ├── datasources/
-│   ├── user-datasource.ts    # User data access
-│   └── auth-datasource.ts    # Authentication data access
+│   ├── auth.ts                # Authentication data access
+│   ├── user.ts                # User data access
+│   ├── kv-storage.ts          # KV access
+│   └── utils.ts
 ├── resolvers/
-│   ├── index.ts              # Resolver exports
-│   ├── user-resolvers.ts     # User query/mutation resolvers
-│   └── auth-resolvers.ts     # Authentication resolvers
+│   ├── index.ts               # Resolver exports
+│   └── mutations              # User mutation
+│        └──index.ts
+│   └── queries                # User query
+│        └──index.ts
 ├── types/
-│   ├── index.ts              # Type exports
-│   ├── env.d.ts              # Environment type definitions
-│   └── graphql.d.ts          # Generated GraphQL types
-├── cors-headers.ts           # CORS handling utilities
-├── security-middleware.ts    # Security validation middleware
-├── worker.ts                 # Main worker entry point
-└── wrangler.toml             # Cloudflare configuration
+│   └── index.ts               # Type exports(graphql schema)
+├── cors-headers.ts            # CORS handling utilities
+├── index.ts                   # Main worker entry point
 ```
 
 ### Database Schema
@@ -435,25 +442,6 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-
-    USER_SESSION {
-        string id PK
-        string user_id FK
-        string refresh_token
-        timestamp expires_at
-        timestamp created_at
-    }
-
-    USER_PROFILE {
-        string user_id PK,FK
-        string avatar_url
-        string bio
-        json settings
-        timestamp updated_at
-    }
-
-    USER ||--o{ USER_SESSION : has
-    USER ||--|| USER_PROFILE : has
 ```
 
 ## Error Handling
@@ -509,105 +497,19 @@ flowchart TD
 
 The data sources layer provides an abstraction over the database access, implementing repository patterns for each entity:
 
-```mermaid
-classDiagram
-    class BaseDataSource {
-        #db
-        #createQuery()
-        #executeQuery()
-    }
-
-    class UserDataSource {
-        +findById(id)
-        +findByEmail(email)
-        +create(userData)
-        +update(id, userData)
-        +delete(id)
-        +list(filters, pagination)
-    }
-
-    class AuthDataSource {
-        +createSession(userId)
-        +validateSession(token)
-        +revokeSession(token)
-        +listSessions(userId)
-    }
-
-    BaseDataSource <|-- UserDataSource
-    BaseDataSource <|-- AuthDataSource
-```
+TODO: docs
 
 ### Resolvers
 
 Resolvers implement the GraphQL schema operations, connecting client requests to the appropriate data sources:
 
-```mermaid
-classDiagram
-    class Query {
-        +user(id)
-        +users(filters, pagination)
-        +me()
-    }
-
-    class Mutation {
-        +createUser(input)
-        +updateUser(id, input)
-        +deleteUser(id)
-        +login(credentials)
-        +logout()
-        +refreshToken(token)
-    }
-
-    class User {
-        +id
-        +email
-        +name
-        +role
-        +profile()
-        +sessions()
-    }
-
-    class UserProfile {
-        +userId
-        +avatarUrl
-        +bio
-        +settings
-    }
-
-    class UserSession {
-        +id
-        +createdAt
-        +expiresAt
-    }
-```
+TODO: docs
 
 ## Service Interfaces
 
 The service layer provides business logic implementation between resolvers and data sources:
 
-```typescript
-export interface AuthAPI {
-  login(email: string, password: string): Promise<LoginResult>;
-  logout(sessionId: string): Promise<boolean>;
-  refreshToken(token: string): Promise<TokenResult>;
-  validateToken(token: string): Promise<SessionUserType>;
-}
-
-export interface UserAPI {
-  getUserById(id: string): Promise<User | null>;
-  getUserByEmail(email: string): Promise<User | null>;
-  createUser(data: CreateUserInput): Promise<User>;
-  updateUser(id: string, data: UpdateUserInput): Promise<User>;
-  deleteUser(id: string): Promise<boolean>;
-  listUsers(filters?: UserFilters, pagination?: PaginationInput): Promise<UserConnection>;
-}
-
-export interface KVStorageAPI {
-  get<T>(key: string): Promise<T | null>;
-  set<T>(key: string, value: T, ttl?: number): Promise<void>;
-  delete(key: string): Promise<void>;
-}
-```
+TODO: docs
 
 ## Deployment and CI/CD
 
