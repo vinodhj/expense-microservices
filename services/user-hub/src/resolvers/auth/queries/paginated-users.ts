@@ -1,25 +1,17 @@
 import { APIs } from "@src/services";
-import { DeleteUserInput } from "generated";
+import { PaginatedUsersInputs } from "generated";
 import { GraphQLError } from "graphql";
 
-export const deleteUser = async (
-  _: unknown,
-  { input }: { input: DeleteUserInput },
-  {
-    apis: { userAPI },
-  }: {
-    apis: APIs;
-  },
-) => {
+export const paginatedUsers = async (_: unknown, { input }: { input: PaginatedUsersInputs }, { apis: { userAPI } }: { apis: APIs }) => {
   try {
-    return await userAPI.deleteUser(input);
+    return await userAPI.paginatedUsers(input);
   } catch (error) {
     if (error instanceof GraphQLError) {
       // Re-throw GraphQL-specific errors
       throw error;
     }
     console.error("Unexpected error:", error);
-    throw new GraphQLError("Failed to delete user", {
+    throw new GraphQLError("Failed to get users", {
       extensions: {
         code: "INTERNAL_SERVER_ERROR",
         error,

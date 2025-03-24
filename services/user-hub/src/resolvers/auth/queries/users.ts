@@ -1,9 +1,9 @@
 import { APIs } from "@src/services";
 import { GraphQLError } from "graphql";
 
-export const users = async (_: unknown, __: unknown, { apis: { userAPI }, accessToken }: { accessToken: string | null; apis: APIs }) => {
+export const users = async (_: unknown, __: unknown, { apis: { userAPI } }: { apis: APIs }) => {
   try {
-    return await userAPI.users(accessToken);
+    return await userAPI.users();
   } catch (error) {
     if (error instanceof GraphQLError) {
       // Re-throw GraphQL-specific errors

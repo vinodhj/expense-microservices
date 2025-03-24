@@ -9,12 +9,17 @@ export class KvStorageServiceAPI {
     this.kvDataSource = kvDataSource;
   }
 
-  async adminKvAsset(input: AdminKvAssetInput, accessToken: string | null): Promise<AdminKvAsset> {
-    if (!accessToken) {
-      throw new GraphQLError("Not authenticated", {
-        extensions: { code: "UNAUTHORIZED" },
+  async adminKvAsset(input: AdminKvAssetInput): Promise<AdminKvAsset> {
+    try {
+      return await this.kvDataSource.adminKvAsset(input);
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      throw new GraphQLError("Failed to get admin kv asset", {
+        extensions: {
+          code: "INTERNAL_SERVER_ERROR",
+          error,
+        },
       });
     }
-    return await this.kvDataSource.adminKvAsset(input);
   }
 }

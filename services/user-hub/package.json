@@ -35,6 +35,7 @@
     "@upstash/redis": "^1.34.5",
     "bcryptjs": "^2.4.3",
     "crypto": "^1.0.1",
+    "dataloader": "^2.2.3",
     "drizzle-orm": "^0.38.3",
     "gql": "^1.1.2",
     "graphql": "^16.10.0",

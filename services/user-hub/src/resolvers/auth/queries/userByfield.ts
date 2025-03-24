@@ -2,13 +2,9 @@ import { APIs } from "@src/services";
 import { UserByFieldInput } from "generated";
 import { GraphQLError } from "graphql";
 
-export const userByfield = async (
-  _: unknown,
-  { input }: { input: UserByFieldInput },
-  { apis: { userAPI }, accessToken }: { apis: APIs; accessToken: string | null },
-) => {
+export const userByfield = async (_: unknown, { input }: { input: UserByFieldInput }, { apis: { userAPI } }: { apis: APIs }) => {
   try {
-    return await userAPI.userByField(input, accessToken);
+    return await userAPI.userByField(input);
   } catch (error) {
     if (error instanceof GraphQLError) {
       // Re-throw GraphQL-specific errors

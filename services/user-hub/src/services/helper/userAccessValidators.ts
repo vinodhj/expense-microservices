@@ -7,15 +7,7 @@ export interface TargetIdentifier {
   email?: string;
 }
 
-export const validateUserAccess = (accessToken: string | null, sessionUser: SessionUserType, target: TargetIdentifier): void => {
-  if (!accessToken) {
-    throw new GraphQLError("Unauthorized token", {
-      extensions: {
-        code: "UNAUTHORIZED",
-      },
-    });
-  }
-
+export const validateUserAccess = (sessionUser: SessionUserType, target: TargetIdentifier): void => {
   if (!sessionUser?.role) {
     throw new GraphQLError("User role is required", {
       extensions: { code: "ROLE_REQUIRED" },

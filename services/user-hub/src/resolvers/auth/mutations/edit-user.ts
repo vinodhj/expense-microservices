@@ -2,13 +2,9 @@ import { EditUserInput } from "generated";
 import { GraphQLError } from "graphql";
 import { APIs } from "@src/services";
 
-export const editUser = async (
-  _: unknown,
-  { input }: { input: EditUserInput },
-  { apis: { userAPI }, accessToken }: { apis: APIs; accessToken: string | null },
-) => {
+export const editUser = async (_: unknown, { input }: { input: EditUserInput }, { apis: { userAPI } }: { apis: APIs }) => {
   try {
-    return await userAPI.editUser(input, accessToken);
+    return await userAPI.editUser(input);
   } catch (error) {
     if (error instanceof GraphQLError) {
       // Re-throw GraphQL-specific errors

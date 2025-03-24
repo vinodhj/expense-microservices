@@ -1,7 +1,7 @@
 import { UserDataSource } from "@src/datasources/user";
 import { validateUserAccess } from "@src/services/helper/userAccessValidators";
 import { Role } from "db/schema/user";
-import { ColumnName, DeleteUserInput, EditUserInput, UserByEmailInput, UserByFieldInput } from "generated";
+import { ColumnName, DeleteUserInput, EditUserInput, PaginatedUsersInputs, UserByEmailInput, UserByFieldInput } from "generated";
 import { GraphQLError } from "graphql";
 import { SessionUserType } from ".";
 
@@ -14,14 +14,25 @@ export class UserServiceAPI {
     this.sessionUser = sessionUser ?? null;
   }
 
-  async users(accessToken: string | null) {
+  async paginatedUsers(input: PaginatedUsersInputs) {
     // Validate access rights
-    validateUserAccess(accessToken, this.sessionUser, {});
+    validateUserAccess(this.sessionUser, {});
+    const { ids } = input;
+    // If input params have ids, we will retrieve users using their ids, if not, we will retrieve users using pagination.
+    if (ids && ids.length > 0) {
+      return this.userDataSource.userByIds(ids);
+    }
+    return this.userDataSource.paginatedUsers(input);
+  }
+
+  async users() {
+    // Validate access rights
+    validateUserAccess(this.sessionUser, {});
     return await this.userDataSource.users();
   }
 
-  async userByEmail(input: UserByEmailInput, accessToken: string | null) {
-    validateUserAccess(accessToken, this.sessionUser, { email: input.email });
+  async userByEmail(input: UserByEmailInput) {
+    validateUserAccess(this.sessionUser, { email: input.email });
     const result = await this.userDataSource.userByEmail(input);
     if (!result) {
       throw new GraphQLError("User not found", {
@@ -31,11 +42,11 @@ export class UserServiceAPI {
     return result;
   }
 
-  async userByField(input: UserByFieldInput, accessToken: string | null) {
+  async userByField(input: UserByFieldInput) {
     if (input.field === ColumnName.Id || input.field === ColumnName.Email) {
-      validateUserAccess(accessToken, this.sessionUser, { [input.field]: input.value });
+      validateUserAccess(this.sessionUser, { [input.field]: input.value });
     } else {
-      validateUserAccess(accessToken, this.sessionUser, {});
+      validateUserAccess(this.sessionUser, {});
     }
 
     let value = input.value;
@@ -59,13 +70,13 @@ export class UserServiceAPI {
     });
   }
 
-  async editUser(input: EditUserInput, accessToken: string | null) {
-    validateUserAccess(accessToken, this.sessionUser, { id: input.id });
+  async editUser(input: EditUserInput) {
+    validateUserAccess(this.sessionUser, { id: input.id });
     return await this.userDataSource.editUser(input);
   }
 
-  async deleteUser(input: DeleteUserInput, accessToken: string | null) {
-    validateUserAccess(accessToken, this.sessionUser, { id: input.id });
+  async deleteUser(input: DeleteUserInput) {
+    validateUserAccess(this.sessionUser, { id: input.id });
     return await this.userDataSource.deleteUser(input);
   }
 }

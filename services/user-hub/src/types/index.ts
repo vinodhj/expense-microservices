@@ -12,6 +12,16 @@ export const typeDefs = gql`
     USER
   }
 
+  enum Sort {
+    ASC
+    DESC
+  }
+
+  enum SORT_BY {
+    CREATED_AT
+    UPDATED_AT
+  }
+
   type User {
     id: ID! #nano_id
     name: String!
@@ -153,10 +163,34 @@ export const typeDefs = gql`
     kv_key: String!
   }
 
+  input PaginatedUsersInputs {
+    ids: [ID!]
+    first: Int = 10
+    after: String
+    sort: Sort = DESC
+    sort_by: SORT_BY = CREATED_AT
+  }
+
+  type UserEdge {
+    node: User!
+    cursor: String!
+  }
+
+  type PageInfo {
+    endCursor: String
+    hasNextPage: Boolean!
+  }
+
+  type UsersConnection {
+    edges: [UserEdge!]!
+    pageInfo: PageInfo!
+  }
+
   type Query {
     userByEmail(input: UserByEmailInput!): UserResponse
     userByfield(input: UserByFieldInput!): [UserResponse]
     users: [UserResponse]
+    paginatedUsers(input: PaginatedUsersInputs!): UsersConnection
     adminKvAsset(input: AdminKvAssetInput!): AdminKvAsset
   }
 

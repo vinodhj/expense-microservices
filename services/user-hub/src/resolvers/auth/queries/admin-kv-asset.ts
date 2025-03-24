@@ -2,13 +2,9 @@ import { APIs } from "@src/services";
 import { QueryAdminKvAssetArgs } from "generated";
 import { GraphQLError } from "graphql";
 
-export const adminKvAsset = async (
-  _: unknown,
-  { input }: QueryAdminKvAssetArgs,
-  { apis: { kvStorageAPI }, accessToken }: { apis: APIs; accessToken: string | null },
-) => {
+export const adminKvAsset = async (_: unknown, { input }: QueryAdminKvAssetArgs, { apis: { kvStorageAPI } }: { apis: APIs }) => {
   try {
-    return await kvStorageAPI.adminKvAsset(input, accessToken);
+    return await kvStorageAPI.adminKvAsset(input);
   } catch (error) {
     if (error instanceof GraphQLError) {
       // Re-throw GraphQL-specific errors

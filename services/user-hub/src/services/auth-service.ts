@@ -52,22 +52,16 @@ export class AuthServiceAPI {
     };
   }
 
-  async changePassword(input: ChangePasswordInput, accessToken: string | null) {
+  async changePassword(input: ChangePasswordInput) {
     // Validate user access and inputs
-    validateUserAccess(accessToken, this.sessionUser, { id: input.id });
+    validateUserAccess(this.sessionUser, { id: input.id });
     changePasswordValidators(input.current_password, input.new_password, input.confirm_password);
 
     const result = await this.authDataSource.changePassword(input);
     return result ?? false;
   }
 
-  async logout(accessToken: string | null): Promise<{ success: boolean }> {
-    if (!accessToken) {
-      throw new GraphQLError("Not authenticated", {
-        extensions: { code: "TOKEN_NOT_FOUND" },
-      });
-    }
-
+  async logout(accessToken: string): Promise<{ success: boolean }> {
     let payload: TokenPayload;
     try {
       payload = jwt.verify(accessToken, this.jwtSecret) as TokenPayload;

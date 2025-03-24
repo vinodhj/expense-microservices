@@ -5,10 +5,10 @@ import { GraphQLError } from "graphql";
 export const changePassword = async (
   _: unknown,
   { input }: { input: ChangePasswordInput },
-  { apis: { authAPI }, accessToken }: { apis: APIs; accessToken: string | null },
+  { apis: { authAPI } }: { apis: APIs },
 ): Promise<boolean> => {
   try {
-    return await authAPI.changePassword(input, accessToken);
+    return await authAPI.changePassword(input);
   } catch (error) {
     if (error instanceof GraphQLError) {
       // Re-throw GraphQL-specific errors

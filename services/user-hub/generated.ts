@@ -120,10 +120,25 @@ export type MutationSignUpArgs = {
   input: SignUpInput;
 };
 
+export type PageInfo = {
+  __typename?: "PageInfo";
+  endCursor?: Maybe<Scalars["String"]["output"]>;
+  hasNextPage: Scalars["Boolean"]["output"];
+};
+
+export type PaginatedUsersInputs = {
+  after?: InputMaybe<Scalars["String"]["input"]>;
+  first?: InputMaybe<Scalars["Int"]["input"]>;
+  ids?: InputMaybe<Array<Scalars["ID"]["input"]>>;
+  sort?: InputMaybe<Sort>;
+  sort_by?: InputMaybe<Sort_By>;
+};
+
 export type Query = {
   __typename?: "Query";
   _service: _Service;
   adminKvAsset?: Maybe<AdminKvAsset>;
+  paginatedUsers?: Maybe<UsersConnection>;
   userByEmail?: Maybe<UserResponse>;
   userByfield?: Maybe<Array<Maybe<UserResponse>>>;
   users?: Maybe<Array<Maybe<UserResponse>>>;
@@ -131,6 +146,10 @@ export type Query = {
 
 export type QueryAdminKvAssetArgs = {
   input: AdminKvAssetInput;
+};
+
+export type QueryPaginatedUsersArgs = {
+  input: PaginatedUsersInputs;
 };
 
 export type QueryUserByEmailArgs = {
@@ -144,6 +163,11 @@ export type QueryUserByfieldArgs = {
 export enum Role {
   Admin = "ADMIN",
   User = "USER",
+}
+
+export enum Sort_By {
+  CreatedAt = "CREATED_AT",
+  UpdatedAt = "UPDATED_AT",
 }
 
 export type SignUpInput = {
@@ -164,6 +188,11 @@ export type SignUpResponse = {
   success: Scalars["Boolean"]["output"];
   user?: Maybe<UserSuccessResponse>;
 };
+
+export enum Sort {
+  Asc = "ASC",
+  Desc = "DESC",
+}
 
 export type User = {
   __typename?: "User";
@@ -191,6 +220,12 @@ export type UserByEmailInput = {
 export type UserByFieldInput = {
   field: ColumnName;
   value: Scalars["String"]["input"];
+};
+
+export type UserEdge = {
+  __typename?: "UserEdge";
+  cursor: Scalars["String"]["output"];
+  node: User;
 };
 
 export type UserResponse = {
@@ -223,6 +258,12 @@ export type UserSuccessResponse = {
   role: Role;
   state?: Maybe<Scalars["String"]["output"]>;
   zipcode?: Maybe<Scalars["String"]["output"]>;
+};
+
+export type UsersConnection = {
+  __typename?: "UsersConnection";
+  edges: Array<UserEdge>;
+  pageInfo: PageInfo;
 };
 
 export type _Service = {
@@ -308,21 +349,28 @@ export type ResolversTypes = {
   EditUserInput: EditUserInput;
   EditUserResponse: ResolverTypeWrapper<EditUserResponse>;
   ID: ResolverTypeWrapper<Scalars["ID"]["output"]>;
+  Int: ResolverTypeWrapper<Scalars["Int"]["output"]>;
   JSON: ResolverTypeWrapper<Scalars["JSON"]["output"]>;
   LoginInput: LoginInput;
   LoginResponse: ResolverTypeWrapper<LoginResponse>;
   LogoutResponse: ResolverTypeWrapper<LogoutResponse>;
   Mutation: ResolverTypeWrapper<{}>;
+  PageInfo: ResolverTypeWrapper<PageInfo>;
+  PaginatedUsersInputs: PaginatedUsersInputs;
   Query: ResolverTypeWrapper<{}>;
   Role: Role;
+  SORT_BY: Sort_By;
   SignUpInput: SignUpInput;
   SignUpResponse: ResolverTypeWrapper<SignUpResponse>;
+  Sort: Sort;
   String: ResolverTypeWrapper<Scalars["String"]["output"]>;
   User: ResolverTypeWrapper<User>;
   UserByEmailInput: UserByEmailInput;
   UserByFieldInput: UserByFieldInput;
+  UserEdge: ResolverTypeWrapper<UserEdge>;
   UserResponse: ResolverTypeWrapper<UserResponse>;
   UserSuccessResponse: ResolverTypeWrapper<UserSuccessResponse>;
+  UsersConnection: ResolverTypeWrapper<UsersConnection>;
   _Any: ResolverTypeWrapper<Scalars["_Any"]["output"]>;
   _FieldSet: ResolverTypeWrapper<Scalars["_FieldSet"]["output"]>;
   _Service: ResolverTypeWrapper<_Service>;
@@ -339,11 +387,14 @@ export type ResolversParentTypes = {
   EditUserInput: EditUserInput;
   EditUserResponse: EditUserResponse;
   ID: Scalars["ID"]["output"];
+  Int: Scalars["Int"]["output"];
   JSON: Scalars["JSON"]["output"];
   LoginInput: LoginInput;
   LoginResponse: LoginResponse;
   LogoutResponse: LogoutResponse;
   Mutation: {};
+  PageInfo: PageInfo;
+  PaginatedUsersInputs: PaginatedUsersInputs;
   Query: {};
   SignUpInput: SignUpInput;
   SignUpResponse: SignUpResponse;
@@ -351,8 +402,10 @@ export type ResolversParentTypes = {
   User: User;
   UserByEmailInput: UserByEmailInput;
   UserByFieldInput: UserByFieldInput;
+  UserEdge: UserEdge;
   UserResponse: UserResponse;
   UserSuccessResponse: UserSuccessResponse;
+  UsersConnection: UsersConnection;
   _Any: Scalars["_Any"]["output"];
   _FieldSet: Scalars["_FieldSet"]["output"];
   _Service: _Service;
@@ -485,9 +538,21 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   signUp?: Resolver<ResolversTypes["SignUpResponse"], ParentType, ContextType, RequireFields<MutationSignUpArgs, "input">>;
 };
 
+export type PageInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes["PageInfo"] = ResolversParentTypes["PageInfo"]> = {
+  endCursor?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  hasNextPage?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes["Query"] = ResolversParentTypes["Query"]> = {
   _service?: Resolver<ResolversTypes["_Service"], ParentType, ContextType>;
   adminKvAsset?: Resolver<Maybe<ResolversTypes["AdminKvAsset"]>, ParentType, ContextType, RequireFields<QueryAdminKvAssetArgs, "input">>;
+  paginatedUsers?: Resolver<
+    Maybe<ResolversTypes["UsersConnection"]>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryPaginatedUsersArgs, "input">
+  >;
   userByEmail?: Resolver<Maybe<ResolversTypes["UserResponse"]>, ParentType, ContextType, RequireFields<QueryUserByEmailArgs, "input">>;
   userByfield?: Resolver<
     Maybe<Array<Maybe<ResolversTypes["UserResponse"]>>>,
@@ -523,6 +588,12 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   updated_at?: Resolver<ResolversTypes["DateTime"], ParentType, ContextType>;
   updated_by?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   zipcode?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type UserEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes["UserEdge"] = ResolversParentTypes["UserEdge"]> = {
+  cursor?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes["User"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -564,6 +635,15 @@ export type UserSuccessResponseResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type UsersConnectionResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes["UsersConnection"] = ResolversParentTypes["UsersConnection"],
+> = {
+  edges?: Resolver<Array<ResolversTypes["UserEdge"]>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes["PageInfo"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export interface _AnyScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes["_Any"], any> {
   name: "_Any";
 }
@@ -585,11 +665,14 @@ export type Resolvers<ContextType = any> = {
   LoginResponse?: LoginResponseResolvers<ContextType>;
   LogoutResponse?: LogoutResponseResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
+  PageInfo?: PageInfoResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   SignUpResponse?: SignUpResponseResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
+  UserEdge?: UserEdgeResolvers<ContextType>;
   UserResponse?: UserResponseResolvers<ContextType>;
   UserSuccessResponse?: UserSuccessResponseResolvers<ContextType>;
+  UsersConnection?: UsersConnectionResolvers<ContextType>;
   _Any?: GraphQLScalarType;
   _FieldSet?: GraphQLScalarType;
   _Service?: _ServiceResolvers<ContextType>;
