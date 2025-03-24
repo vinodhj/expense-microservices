@@ -1,8 +1,12 @@
 import { APIs } from "@src/services";
-import { UserByEmailInput } from "generated";
+import { UserByEmailInput, UserResponse } from "generated";
 import { GraphQLError } from "graphql";
 
-export const userByEmail = async (_: unknown, { input }: { input: UserByEmailInput }, { apis: { userAPI } }: { apis: APIs }) => {
+export const userByEmail = async (
+  _: unknown,
+  { input }: { input: UserByEmailInput },
+  { apis: { userAPI } }: { apis: APIs },
+): Promise<UserResponse> => {
   try {
     return await userAPI.userByEmail(input);
   } catch (error) {

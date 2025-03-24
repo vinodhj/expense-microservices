@@ -139,7 +139,7 @@ export class AuthDataSource {
     }
   }
 
-  async incrementTokenVersion(email: string): Promise<void> {
+  async incrementTokenVersion(email: string) {
     try {
       await this.kvStorageDataSource.incrementTokenVersion(email);
     } catch (error) {

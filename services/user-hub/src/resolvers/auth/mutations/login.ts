@@ -1,8 +1,12 @@
-import { LoginInput } from "generated";
+import { LoginInput, LoginResponse } from "generated";
 import { GraphQLError } from "graphql";
 import { APIs } from "@src/services";
 
-export const login = async (_: unknown, { input }: { input: LoginInput }, { apis: { authAPI } }: { apis: APIs }) => {
+export const login = async (
+  _: unknown,
+  { input }: { input: LoginInput },
+  { apis: { authAPI } }: { apis: APIs },
+): Promise<LoginResponse> => {
   try {
     return await authAPI.login(input);
   } catch (error) {

@@ -1,8 +1,12 @@
-import { SignUpInput } from "generated";
+import { SignUpInput, SignUpResponse } from "generated";
 import { GraphQLError } from "graphql";
 import { APIs } from "@src/services";
 
-export const signUp = async (_: unknown, { input }: { input: SignUpInput }, { apis: { authAPI } }: { apis: APIs }) => {
+export const signUp = async (
+  _: unknown,
+  { input }: { input: SignUpInput },
+  { apis: { authAPI } }: { apis: APIs },
+): Promise<SignUpResponse> => {
   try {
     return await authAPI.signUp(input);
   } catch (error) {

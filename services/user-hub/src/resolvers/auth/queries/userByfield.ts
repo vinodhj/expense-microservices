@@ -1,8 +1,12 @@
 import { APIs } from "@src/services";
-import { UserByFieldInput } from "generated";
+import { UserByFieldInput, UserResponse } from "generated";
 import { GraphQLError } from "graphql";
 
-export const userByfield = async (_: unknown, { input }: { input: UserByFieldInput }, { apis: { userAPI } }: { apis: APIs }) => {
+export const userByfield = async (
+  _: unknown,
+  { input }: { input: UserByFieldInput },
+  { apis: { userAPI } }: { apis: APIs },
+): Promise<Array<UserResponse>> => {
   try {
     return await userAPI.userByField(input);
   } catch (error) {

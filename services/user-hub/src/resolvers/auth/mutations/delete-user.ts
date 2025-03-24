@@ -10,7 +10,7 @@ export const deleteUser = async (
   }: {
     apis: APIs;
   },
-) => {
+): Promise<boolean> => {
   try {
     return await userAPI.deleteUser(input);
   } catch (error) {

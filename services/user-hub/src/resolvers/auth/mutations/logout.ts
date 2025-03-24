@@ -1,7 +1,12 @@
 import { GraphQLError } from "graphql";
 import { APIs } from "@src/services";
+import { LogoutResponse } from "generated";
 
-export const logout = async (_: unknown, __: unknown, { apis: { authAPI }, accessToken }: { apis: APIs; accessToken: string }) => {
+export const logout = async (
+  _: unknown,
+  __: unknown,
+  { apis: { authAPI }, accessToken }: { apis: APIs; accessToken: string },
+): Promise<LogoutResponse> => {
   try {
     return await authAPI.logout(accessToken);
   } catch (error) {

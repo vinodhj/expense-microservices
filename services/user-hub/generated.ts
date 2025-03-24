@@ -129,7 +129,6 @@ export type PageInfo = {
 export type PaginatedUsersInputs = {
   after?: InputMaybe<Scalars["String"]["input"]>;
   first?: InputMaybe<Scalars["Int"]["input"]>;
-  ids?: InputMaybe<Array<Scalars["ID"]["input"]>>;
   sort?: InputMaybe<Sort>;
   sort_by?: InputMaybe<Sort_By>;
 };
@@ -149,7 +148,8 @@ export type QueryAdminKvAssetArgs = {
 };
 
 export type QueryPaginatedUsersArgs = {
-  input: PaginatedUsersInputs;
+  ids?: InputMaybe<Array<Scalars["ID"]["input"]>>;
+  input?: InputMaybe<PaginatedUsersInputs>;
 };
 
 export type QueryUserByEmailArgs = {
@@ -547,12 +547,7 @@ export type PageInfoResolvers<ContextType = any, ParentType extends ResolversPar
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes["Query"] = ResolversParentTypes["Query"]> = {
   _service?: Resolver<ResolversTypes["_Service"], ParentType, ContextType>;
   adminKvAsset?: Resolver<Maybe<ResolversTypes["AdminKvAsset"]>, ParentType, ContextType, RequireFields<QueryAdminKvAssetArgs, "input">>;
-  paginatedUsers?: Resolver<
-    Maybe<ResolversTypes["UsersConnection"]>,
-    ParentType,
-    ContextType,
-    RequireFields<QueryPaginatedUsersArgs, "input">
-  >;
+  paginatedUsers?: Resolver<Maybe<ResolversTypes["UsersConnection"]>, ParentType, ContextType, Partial<QueryPaginatedUsersArgs>>;
   userByEmail?: Resolver<Maybe<ResolversTypes["UserResponse"]>, ParentType, ContextType, RequireFields<QueryUserByEmailArgs, "input">>;
   userByfield?: Resolver<
     Maybe<Array<Maybe<ResolversTypes["UserResponse"]>>>,

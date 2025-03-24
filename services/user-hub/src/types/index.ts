@@ -164,7 +164,6 @@ export const typeDefs = gql`
   }
 
   input PaginatedUsersInputs {
-    ids: [ID!]
     first: Int = 10
     after: String
     sort: Sort = DESC
@@ -190,7 +189,7 @@ export const typeDefs = gql`
     userByEmail(input: UserByEmailInput!): UserResponse
     userByfield(input: UserByFieldInput!): [UserResponse]
     users: [UserResponse]
-    paginatedUsers(input: PaginatedUsersInputs!): UsersConnection
+    paginatedUsers(ids: [ID!], input: PaginatedUsersInputs): UsersConnection
     adminKvAsset(input: AdminKvAssetInput!): AdminKvAsset
   }
 

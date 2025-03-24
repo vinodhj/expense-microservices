@@ -1,5 +1,5 @@
 import { AuthDataSource } from "@src/datasources/auth";
-import { ChangePasswordInput, LoginInput, SignUpInput } from "generated";
+import { ChangePasswordInput, LoginInput, LoginResponse, LogoutResponse, SignUpInput, SignUpResponse } from "generated";
 import { validateEmailAndPassword } from "@src/services/helper/authValidators";
 import { generateToken, TokenPayload } from "@src/services/helper/jwtUtils";
 import { validateUserAccess } from "@src/services/helper/userAccessValidators";
@@ -27,12 +27,12 @@ export class AuthServiceAPI {
     this.sessionUser = sessionUser ?? null;
   }
 
-  async signUp(input: SignUpInput) {
+  async signUp(input: SignUpInput): Promise<SignUpResponse> {
     validateEmailAndPassword(input.email, input.password);
     return await this.authDataSource.signUp(input);
   }
 
-  async login(input: LoginInput) {
+  async login(input: LoginInput): Promise<LoginResponse> {
     validateEmailAndPassword(input.email, input.password);
 
     const result = await this.authDataSource.login(input);
@@ -52,7 +52,7 @@ export class AuthServiceAPI {
     };
   }
 
-  async changePassword(input: ChangePasswordInput) {
+  async changePassword(input: ChangePasswordInput): Promise<boolean> {
     // Validate user access and inputs
     validateUserAccess(this.sessionUser, { id: input.id });
     changePasswordValidators(input.current_password, input.new_password, input.confirm_password);
@@ -61,7 +61,7 @@ export class AuthServiceAPI {
     return result ?? false;
   }
 
-  async logout(accessToken: string): Promise<{ success: boolean }> {
+  async logout(accessToken: string): Promise<LogoutResponse> {
     let payload: TokenPayload;
     try {
       payload = jwt.verify(accessToken, this.jwtSecret) as TokenPayload;
