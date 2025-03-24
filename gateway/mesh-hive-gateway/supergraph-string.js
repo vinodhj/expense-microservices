@@ -143,6 +143,21 @@ export const supergraphSdl = /* GraphQL */ `
     kv_value: JSON
   }
 
+  type UserEdge @join__type(graph: USER_SERVICE) {
+    node: User!
+    cursor: String!
+  }
+
+  type PageInfo @join__type(graph: USER_SERVICE) {
+    endCursor: String
+    hasNextPage: Boolean!
+  }
+
+  type UsersConnection @join__type(graph: USER_SERVICE) {
+    edges: [UserEdge!]!
+    pageInfo: PageInfo!
+  }
+
   type Query
     @extraSchemaDefinitionDirective(
       directives: {
@@ -171,6 +186,7 @@ export const supergraphSdl = /* GraphQL */ `
     userByEmail(input: UserByEmailInput!): UserResponse
     userByfield(input: UserByFieldInput!): [UserResponse]
     users: [UserResponse]
+    paginatedUsers(ids: [ID!], input: PaginatedUsersInputs): UsersConnection
     adminKvAsset(input: AdminKvAssetInput!): AdminKvAsset
   }
 
@@ -186,6 +202,16 @@ export const supergraphSdl = /* GraphQL */ `
   enum Role @join__type(graph: USER_SERVICE) {
     ADMIN @join__enumValue(graph: USER_SERVICE)
     USER @join__enumValue(graph: USER_SERVICE)
+  }
+
+  enum Sort @join__type(graph: USER_SERVICE) {
+    ASC @join__enumValue(graph: USER_SERVICE)
+    DESC @join__enumValue(graph: USER_SERVICE)
+  }
+
+  enum SORT_BY @join__type(graph: USER_SERVICE) {
+    CREATED_AT @join__enumValue(graph: USER_SERVICE)
+    UPDATED_AT @join__enumValue(graph: USER_SERVICE)
   }
 
   enum ColumnName @join__type(graph: USER_SERVICE) {
@@ -254,5 +280,12 @@ export const supergraphSdl = /* GraphQL */ `
 
   input AdminKvAssetInput @join__type(graph: USER_SERVICE) {
     kv_key: String!
+  }
+
+  input PaginatedUsersInputs @join__type(graph: USER_SERVICE) {
+    first: Int = 10
+    after: String
+    sort: Sort = DESC
+    sort_by: SORT_BY = CREATED_AT
   }
 `;
