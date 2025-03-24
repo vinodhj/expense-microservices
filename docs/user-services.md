@@ -78,7 +78,8 @@ sequenceDiagram
         ServiceAPI->>DataSources: Fetch/Update Data
         DataSources->>DB: Database Operations
         DB->>DataSources: Data Results
-        DataSources->>Resolvers: Return Data
+        DataSources->>ServiceAPI: Return Data
+        ServiceAPI-->>Resolvers: Return Data
 
         GraphQLPlugins->>Redis: Store Used Nonce(If nonce is enabled)
         UserService->>UserService: Apply CORS Headers
