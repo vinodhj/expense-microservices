@@ -75,7 +75,7 @@ export default async function handleGraphQL(request: Request, env: Env): Promise
       const { authAPI, userAPI, kvStorageAPI } = createAPIs({ db, env, sessionUser, redis });
 
       // Verify security headers
-      // const { nonceKey, noncetimestamp } = await securityMiddleware.verifySecurityHeaders(headers, env);
+      const { nonceKey, noncetimestamp } = await securityMiddleware.verifySecurityHeaders(headers, env);
 
       return {
         jwtSecret: env.JWT_SECRET,
@@ -86,8 +86,8 @@ export default async function handleGraphQL(request: Request, env: Env): Promise
           userAPI,
           kvStorageAPI,
         },
-        nonceKey: "non",
-        noncetimestamp: "123455678",
+        nonceKey,
+        noncetimestamp,
       };
     },
   });
