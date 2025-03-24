@@ -6,7 +6,10 @@ import {
   DeleteUserInput,
   EditUserInput,
   EditUserResponse,
+  InputMaybe,
   PaginatedUsersInputs,
+  Sort,
+  Sort_By,
   UserByEmailInput,
   UserByFieldInput,
   UserResponse,
@@ -25,9 +28,18 @@ export class UserServiceAPI {
     this.sessionUser = sessionUser ?? null;
   }
 
-  async paginatedUsers(ids: Array<string>, input: PaginatedUsersInputs): Promise<UsersConnection> {
+  async paginatedUsers(
+    ids: InputMaybe<string[]> | undefined,
+    input: InputMaybe<PaginatedUsersInputs> | undefined,
+  ): Promise<UsersConnection> {
     // Validate access rights
     validateUserAccess(this.sessionUser, {});
+
+    const processedInput = input ?? {
+      first: 10,
+      sort: Sort.Desc,
+      sort_by: Sort_By.CreatedAt,
+    };
 
     // Create a unique cache key for the request
     const cacheKey = ids && ids.length > 0 ? `users:ids:${ids.join(",")}` : `users:paginated:${JSON.stringify(input)}`;
@@ -44,7 +56,7 @@ export class UserServiceAPI {
     if (ids && ids.length > 0) {
       result = await this.userDataSource.userByIds(ids);
     }
-    result = await this.userDataSource.paginatedUsers(input);
+    result = await this.userDataSource.paginatedUsers(processedInput);
 
     // Cache the result
     userCache.set(cacheKey, result);

@@ -1,13 +1,14 @@
 import { APIs } from "@src/services";
-import { PaginatedUsersInputs, UsersConnection } from "generated";
+import { QueryPaginatedUsersArgs, UsersConnection } from "generated";
 import { GraphQLError } from "graphql";
 
 export const paginatedUsers = async (
   _: unknown,
-  { ids, input }: { ids: Array<string>; input: PaginatedUsersInputs },
+  args: QueryPaginatedUsersArgs,
   { apis: { userAPI } }: { apis: APIs },
 ): Promise<UsersConnection> => {
   try {
+    const { ids, input } = args;
     return await userAPI.paginatedUsers(ids, input);
   } catch (error) {
     if (error instanceof GraphQLError) {
