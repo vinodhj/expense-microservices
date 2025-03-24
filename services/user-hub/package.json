@@ -10,10 +10,11 @@
     "deploy:staging": "wrangler deploy --env staging",
     "bundle-size": "wrangler build && wrangler deploy --dry-run",
     "deploy": "wrangler deploy",
-    "dev": "(kill -9 $(lsof -t -i:8501) || true) && wrangler dev --name user-hub --port 8501 --inspector-port 8301 --persist-to=.db-local",
+    "dev": "(kill -9 $(lsof -t -i:8501) || true) && wrangler dev --test--scheduled --name user-hub --port 8501 --inspector-port 8301 --persist-to=.db-local",
     "test": "vitest",
     "cf-typegen": "wrangler types",
-    "prod:secrets": "./wrangler-secrets.sh"
+    "prod:secrets": "./wrangler-secrets.sh",
+    "dev:cron": "bash ./scheduled-curl.sh"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.7.5",
