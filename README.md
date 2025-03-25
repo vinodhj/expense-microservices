@@ -75,8 +75,8 @@ project-root/
 ├── gateway/
 │   └── mesh-hive-gateway/
 ├── services/
-│   ├── user-service/
-│   └── expense-service/
+│   ├── user-hub/
+│   └── expense-tracker/
 └── package.json
 ```
 
