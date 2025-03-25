@@ -785,13 +785,13 @@ flowchart TB
     S2 --> DS2
     S3 --> DS3
 
-    style A fill:#f9f,stroke:#333,stroke-width:4px,color:#fff
-    style B fill:#bbf,stroke:#333,stroke-width:2px,color:#fff
-    style C fill:#bfb,stroke:#333,stroke-width:2px,color:#fff
-    style D fill:#ff9,stroke:#333,stroke-width:2px,color:#fff
-    style E fill:#f99,stroke:#333,stroke-width:2px,color:#fff
-    style F fill:#9f9,stroke:#333,stroke-width:2px,color:#fff
-    style G fill:#99f,stroke:#333,stroke-width:2px,color:#fff
+    style A fill:#f9f,stroke:#333,stroke-width:4px,color:#333
+    style B fill:#bbf,stroke:#333,stroke-width:2px,color:#333
+    style C fill:#bfb,stroke:#333,stroke-width:2px,color:#333
+    style D fill:#ff9,stroke:#333,stroke-width:2px,color:#333
+    style E fill:#f99,stroke:#333,stroke-width:2px,color:#333
+    style F fill:#9f9,stroke:#333,stroke-width:2px,color:#333
+    style G fill:#99f,stroke:#333,stroke-width:2px,color:#333
 ```
 
 ### User Service Detailed Interaction Sequence
