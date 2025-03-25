@@ -12,6 +12,18 @@
   },
   "compatibility_flags": ["nodejs_compat"],
   "minify": true,
+  "env": {
+    "dev": {
+      "vars": {
+        "ENVIRONMENT": "DEV",
+      },
+    },
+    "production": {
+      "vars": {
+        "ENVIRONMENT": "PROD",
+      },
+    },
+  },
   "d1_databases": [
     {
       "binding": "DB",

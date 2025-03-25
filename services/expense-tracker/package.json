@@ -12,7 +12,8 @@
     "deploy": "wrangler deploy",
     "dev": "(kill -9 $(lsof -t -i:8502) || true) && wrangler dev --name user-hub --port 8502 --inspector-port 8302 --persist-to=.db-local",
     "test": "vitest",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types",
+    "prod:secrets": "./wrangler-secrets.sh"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.7.5",
@@ -27,6 +28,10 @@
     "wrangler": "^4.1.0"
   },
   "dependencies": {
+    "@apollo/subgraph": "^2.10.0",
+    "@envelop/core": "^5.2.3",
+    "@upstash/redis": "^1.34.5",
+    "dataloader": "^2.2.3",
     "drizzle-orm": "^0.38.3",
     "gql": "^1.1.2",
     "graphql": "^16.10.0",

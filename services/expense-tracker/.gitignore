@@ -100,6 +100,7 @@ web_modules/
 .env.production.local
 .env.local
 .env.main
+.env.secrets
 
 # parcel-bundler cache (https://parceljs.org/)
 
@@ -171,3 +172,7 @@ dist
 
 .dev.vars
 .wrangler/
+
+.db-local/
+
+.local
