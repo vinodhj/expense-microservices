@@ -1,4 +1,4 @@
-# User Service Documentation
+# User Service Technical Design Document
 
 ## Overview
 
@@ -6,23 +6,45 @@ The User Service is a microservice in our architecture that provides user manage
 
 ## Table of Contents
 
-1. [Technical Stack](#technical-stack)
-2. [Architecture Overview](#architecture-overview)
-3. [Development Setup](#development-setup)
-4. [API Endpoints](#api-endpoints)
-5. [Authentication & Security](#authentication--security)
-6. [Core Components](#core-components)
-7. [Request Flow](#request-flow)
-8. [Directory Structure](#directory-structure)
-9. [Error Handling](#error-handling)
+- [Technical Stack](#technical-stack)
+- [Architecture Overview](#architecture-overview)
+- [Development Setup](#development-setup)
+- [API Endpoints](#api-endpoints)
+- [Authentication & Security](#authentication--security)
+- [Core Components](#core-components)
+- [Request Flow](#request-flow)
+- [Directory Structure](#directory-structure)
+- [Error Handling](#error-handling)
+
+## External Values
+
+N/A
+
+## Required Headers
+
+- `X-Project-Token` , `X-Gateway-Nonce`, `X-Gateway-Signature`, `X-Gateway-Timestamp`, `X-User-Id`, `X-User-Role`, `X-User-Email`, `X-User-Name`
+
+## Interfaces
+
+- Graphql Mesh with hive gateway interface
+
+**Purpose:** Server as primary interface to interact with user service.
+
+- **API**: GraphQL
+- **Protocols Used**: GraphQL over HTTPS
+- **Other Interface**: Callable from other cloudflare workers by service binding.
 
 ## Technical Stack
 
 - **Cloudflare Workers**: Serverless compute platform
+- **Languages**: Typescript, GraphQL
+- **Frameworks**: NodeJS, Graphql Yoga
 - **D1 Database**: Cloudflare's SQL database
+- **KV Namespace**: Cloudflare's KV namespaces(key-value database)
 - **GraphQL (Yoga)**: API query language and runtime
 - **Drizzle ORM**: Database toolkit for TypeScript
 - **Upstash Redis**: Distributed Redis for auth token versioning and nonce tracking
+- **Hosting**: Cloud-based hosting environment
 
 ## Architecture Overview
 
@@ -492,7 +514,252 @@ flowchart TD
 - `FORBIDDEN`: Insufficient permissions
 - `INTERNAL_SERVER_ERROR`: Unexpected server error
 
-## Data Sources and Resolvers
+## DB Structure
+
+**user**
+
+| Field      | Types   | Constraint       | Format   |
+| ---------- | ------- | ---------------- | -------- |
+| id         | TEXT    | PK, NOT NULL     |          |
+| name       | TEXT    | NOT NULL         |          |
+| email      | TEXT    | UNIQUE, NOT NULL |          |
+| password   | TEXT    | NOT NULL         |          |
+| role       | TEXT    | NOT NULL         |          |
+| phone      | TEXT    | UNIQUE, NOT NULL |          |
+| address    | TEXT    | Nullable         |          |
+| city       | TEXT    | Nullable         |          |
+| state      | TEXT    | Nullable         |          |
+| country    | TEXT    | Nullable         |          |
+| zipcode    | TEXT    | Nullable         |          |
+| created_at | INTEGER | NOT NULL         | DateTime |
+| updated_at | INTEGER | NOT NULL         | DateTime |
+| created_by | TEXT    | NOT NULL         |          |
+| updated_by | TEXT    | NOT NULL         |          |
+
+**Indexes**
+
+- `idx_email` on **email**
+- `idx_phone` on **phone**
+- `composite_email_phone` (Unique) on **email** and **phone**
+
+## GraphQL Schema, Resolvers, Service API Interfaces and Data Sources
+
+### GraphQL Schema (Types)
+
+```GraphQL
+directive @public on FIELD_DEFINITION
+
+scalar DateTime
+scalar JSON
+
+# ADMIN, MODERATOR, USER
+enum Role {
+  ADMIN
+  USER
+}
+
+enum Sort {
+  ASC
+  DESC
+}
+
+enum SORT_BY {
+  CREATED_AT
+  UPDATED_AT
+}
+
+type User {
+  id: ID! # nano_id
+  name: String!
+  email: String!
+  password: String! # hashed
+  role: Role!
+  phone: String!
+  address: String
+  city: String
+  state: String
+  country: String
+  zipcode: String
+  created_at: DateTime!
+  updated_at: DateTime!
+  created_by: String!
+  updated_by: String!
+}
+
+input SignUpInput {
+  name: String!
+  email: String!
+  password: String!
+  phone: String!
+  role: Role
+  address: String
+  city: String
+  state: String
+  country: String
+  zipcode: String
+}
+
+type SignUpResponse {
+  success: Boolean!
+  user: UserSuccessResponse
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+type LoginResponse {
+  success: Boolean!
+  token: String
+  user: UserSuccessResponse
+}
+
+type UserSuccessResponse {
+  id: ID!
+  name: String!
+  email: String!
+  phone: String!
+  role: Role!
+  address: String
+  city: String
+  state: String
+  country: String
+  zipcode: String
+}
+
+type UserResponse {
+  id: ID!
+  name: String!
+  email: String!
+  role: Role!
+  phone: String!
+  address: String
+  city: String
+  state: String
+  country: String
+  zipcode: String
+  created_at: DateTime!
+  updated_at: DateTime!
+  created_by: String!
+  updated_by: String!
+}
+
+input UserByEmailInput {
+  email: String!
+}
+
+input UserByFieldInput {
+  field: ColumnName!
+  value: String!
+}
+
+input DeleteUserInput {
+  id: ID!
+}
+
+input EditUserInput {
+  id: ID!
+  name: String!
+  email: String!
+  phone: String!
+  role: Role
+  address: String
+  city: String
+  state: String
+  country: String
+  zipcode: String
+}
+
+type EditUserResponse {
+  success: Boolean!
+  user: UserSuccessResponse
+}
+
+input ChangePasswordInput {
+  id: ID!
+  current_password: String!
+  new_password: String!
+  confirm_password: String!
+}
+
+enum ColumnName {
+  id
+  name
+  email
+  phone
+  role
+  address
+  city
+  state
+  country
+  zipcode
+}
+
+type LogoutResponse {
+  success: Boolean!
+}
+
+type AdminKvAsset {
+  kv_key: String!
+  kv_value: JSON
+}
+
+input AdminKvAssetInput {
+  kv_key: String!
+}
+
+input PaginatedUsersInputs {
+  first: Int = 10
+  after: String
+  sort: Sort = DESC
+  sort_by: SORT_BY = CREATED_AT
+}
+
+type UserEdge {
+  node: User!
+  cursor: String!
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+}
+
+type UsersConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+}
+
+type Query {
+  userByEmail(input: UserByEmailInput!): UserResponse
+  userByfield(input: UserByFieldInput!): [UserResponse]
+  users: [UserResponse]
+  paginatedUsers(ids: [ID!], input: PaginatedUsersInputs): UsersConnection
+  adminKvAsset(input: AdminKvAssetInput!): AdminKvAsset
+}
+
+type Mutation {
+  signUp(input: SignUpInput!): SignUpResponse! @public
+  login(input: LoginInput!): LoginResponse! @public
+  editUser(input: EditUserInput!): EditUserResponse!
+  deleteUser(input: DeleteUserInput!): Boolean!
+  changePassword(input: ChangePasswordInput!): Boolean!
+  logout: LogoutResponse!
+}
+```
+
+### Resolvers (Query/Mutation)
+
+Resolvers implement the GraphQL schema operations, connecting client requests to the appropriate service API interfaces
+
+TODO: docs
+
+## Service API Interfaces
+
+The service layer provides business logic implementation between resolvers and data sources
+
+TODO: docs
 
 ### Data Sources
 
@@ -500,17 +767,30 @@ The data sources layer provides an abstraction over the database access, impleme
 
 TODO: docs
 
-### Resolvers
+### Error Handling
 
-Resolvers implement the GraphQL schema operations, connecting client requests to the appropriate data sources:
+**General Principles**
 
-TODO: docs
+1. **Explicit Error Types**: Define custom error types that clearly describe different error conditions. This helps clients understand the nature of the error and how to respond to it.
+2. **Error Codes**: Assign unique error codes to different types of errors for easy identification and localization of error messages.
+3. **Consistent Structure**: Ensure that all errors returned from the API have a consistent structure, making it easier for clients to parse and handle errors.
+4. **Detailed Messages**: Provide detailed error messages that offer insights into why an operation failed. This can include validation failures, system errors, or execution issues.
+5. **User-Friendly Language**: Error messages should be in user-friendly language, avoiding technicalities that may not be understandable to end users.
 
-## Service Interfaces
+**Implementing Error Responses**
 
-The service layer provides business logic implementation between resolvers and data sources:
+**GraphQL Error Object**: Utilize the GraphQL `errors` object to return errors. Each error can include:
 
-TODO: docs
+1. **`message`**: A human-readable error message.
+2. **`extensions`**: An optional field that can include additional details such as error codes, type of error, and other relevant information.
+
+### Testing
+
+- **Unit Tests**
+  - Unit tests for resolver functions
+- **End-to-End (E2E) Tests**
+  - Complete user service workflows which includes CRUD operations should be tested.
+  - Use Playwright or Selenium
 
 ## Deployment and CI/CD
 
@@ -532,3 +812,7 @@ flowchart TB
     K -->|Yes| L[Deploy to Production]
     L --> M[Monitor]
 ```
+
+## Conclusion
+
+The above schema and other information needs to be in alliance with the conventions present in the ADRs.
