@@ -16,24 +16,6 @@ The User Service is a microservice in our architecture that provides user manage
 - [Directory Structure](#directory-structure)
 - [Error Handling](#error-handling)
 
-## External Values
-
-N/A
-
-## Required Headers
-
-- `X-Project-Token` , `X-Gateway-Nonce`, `X-Gateway-Signature`, `X-Gateway-Timestamp`, `X-User-Id`, `X-User-Role`, `X-User-Email`, `X-User-Name`
-
-## Interfaces
-
-- Graphql Mesh with hive gateway interface
-
-**Purpose:** Server as primary interface to interact with user service.
-
-- **API**: GraphQL
-- **Protocols Used**: GraphQL over HTTPS
-- **Other Interface**: Callable from other cloudflare workers by service binding.
-
 ## Technical Stack
 
 - **Cloudflare Workers**: Serverless compute platform
@@ -45,6 +27,24 @@ N/A
 - **Drizzle ORM**: Database toolkit for TypeScript
 - **Upstash Redis**: Distributed Redis for auth token versioning and nonce tracking
 - **Hosting**: Cloud-based hosting environment
+
+### External Values
+
+N/A
+
+### Required Headers
+
+- `X-Project-Token` , `X-Gateway-Nonce`, `X-Gateway-Signature`, `X-Gateway-Timestamp`, `X-User-Id`, `X-User-Role`, `X-User-Email`, `X-User-Name`
+
+### Interfaces
+
+- Graphql Mesh with hive gateway interface
+
+**Purpose:** Server as primary interface to interact with user service.
+
+- **API**: GraphQL
+- **Protocols Used**: GraphQL over HTTPS
+- **Other Interface**: Callable from other cloudflare workers by service binding.
 
 ## Architecture Overview
 
@@ -452,7 +452,7 @@ Handles Cross-Origin Resource Sharing (CORS) headers and preflight requests.
 ├── index.ts                   # Main worker entry point
 ```
 
-### DB Structure
+## DB Structure
 
 **user**
 
@@ -714,7 +714,7 @@ Resolvers implement the GraphQL schema operations, connecting client requests to
 
 TODO: docs
 
-## Service API Interfaces
+### Service API Interfaces
 
 The service layer provides business logic implementation between resolvers and data sources
 
@@ -726,7 +726,7 @@ The data sources layer provides an abstraction over the database access, impleme
 
 TODO: docs
 
-### Error Handling
+## Error Handling
 
 The service implements structured error handling with GraphQL error extensions:
 
@@ -755,7 +755,7 @@ throw new GraphQLError("Error message", {
 1. **`message`**: A human-readable error message.
 2. **`extensions`**: An optional field that can include additional details such as error codes, type of error, and other relevant information.
 
-## Error Flow
+### Error Flow
 
 ```mermaid
 flowchart TD
@@ -776,7 +776,7 @@ flowchart TD
     I --> J[Return to Client]
 ```
 
-## Common Error Codes
+### Common Error Codes
 
 - `UNAUTHORIZED`: Invalid project token
 - `GATEWAY_UNAUTHORIZED`: Missing security headers
@@ -788,7 +788,7 @@ flowchart TD
 - `FORBIDDEN`: Insufficient permissions
 - `INTERNAL_SERVER_ERROR`: Unexpected server error
 
-### Testing
+## Testing
 
 - **Unit Tests**
   - Unit tests for resolver functions
