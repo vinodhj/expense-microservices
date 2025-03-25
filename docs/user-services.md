@@ -66,7 +66,7 @@ flowchart TB
         Worker[Worker Entry Point] --> GraphQLHandler[GraphQL Handler]
         Worker --> KVSyncHandler[KV Sync Handler]
         Worker --> CORSHandler[CORS Handler]
-        Worker --> CacheManager[Cache Management]
+        Worker --> CacheManager[Scheduled Job Handler - Cache]
 
         GraphQLHandler --> SecurityMiddleware[Security Middleware]
         GraphQLHandler --> GraphQLPlugins[GraphQL Plugins]
@@ -459,7 +459,7 @@ classDiagram
     GraphQLHandler --> Resolvers
 
     Resolvers --> ServiceAPI
-    ServiceAPI --> InMemoryCache: checks cache
+    ServiceAPI --> InMemoryCache: checks cache(user service API only)
     ServiceAPI --> DataSources: fetch data
 ```
 
@@ -469,23 +469,28 @@ classDiagram
 sequenceDiagram
     participant Client
     participant GraphQLHandler
+    participant Resolvers
+    participant ServiceAPI
     participant InMemoryCache
     participant DataSource
     participant Database
 
     Client->>GraphQLHandler: GraphQL Query
-    GraphQLHandler->>InMemoryCache: Check Cache (user service API only)
+    GraphQLHandler->>Resolvers: Execute Operation
+    Resolvers->>ServiceAPI: Invoke Service
+
+    ServiceAPI->>InMemoryCache: Check Cache (user service API only)
 
     alt Cache Hit
-        InMemoryCache-->>GraphQLHandler: Return Cached Data
-        GraphQLHandler-->>Client: Respond with Cached Data
+        InMemoryCache-->>ServiceAPI: Return Cached Data
+        ServiceAPI-->>Client: Respond with Cached Data
     else Cache Miss
-        GraphQLHandler->>DataSource: Fetch Data
+        ServiceAPI->>DataSource: Fetch Data
         DataSource->>Database: Query
         Database-->>DataSource: Return Data
-        DataSource-->>GraphQLHandler: Return Data
-        GraphQLHandler->>InMemoryCache: Store in Cache
-        GraphQLHandler-->>Client: Respond with Fresh Data
+        DataSource-->>ServiceAPI: Return Data
+        ServiceAPI->>InMemoryCache: Store in Cache
+        ServiceAPI-->>Client: Respond with Fresh Data
     end
 ```
 
@@ -994,6 +999,9 @@ flowchart TB
         D --> E[(Database D1)]
         D --> F[(Redis)]
         D --> G[(KV Storage)]
+
+        C <--> H[(InMemoryCache)]
+        S1 <--> H
     end
 
     subgraph "Resolver Types"
@@ -1031,6 +1039,7 @@ flowchart TB
     style E fill:#f99,stroke:#333,stroke-width:2px,color:#333
     style F fill:#9f9,stroke:#333,stroke-width:2px,color:#333
     style G fill:#99f,stroke:#333,stroke-width:2px,color:#333
+    style H fill:#ffa500,stroke:#333,stroke-width:2px,color:#333
 ```
 
 ### User Service Detailed Interaction Sequence
@@ -1040,6 +1049,7 @@ sequenceDiagram
     participant Client as GraphQL Client
     participant Resolver as GraphQL Resolver
     participant ServiceAPI as Service API Layer
+    participant InMemoryCache as In-Memory Cache
     participant DataSource as Data Source
     participant Database as Database (D1)
     participant Redis as Redis
@@ -1054,19 +1064,31 @@ sequenceDiagram
 
     Resolver->>ServiceAPI: Call Appropriate Service Method
 
-    alt User Creation/Login
-        ServiceAPI->>DataSource: Prepare User Data
-        DataSource->>Database: Insert/Retrieve User
-        Database-->>DataSource: Return User Data
-        DataSource-->>ServiceAPI: Processed User Data
+    ServiceAPI->>InMemoryCache: Check Cached Data(user service API only)
+
+    alt Cache Hit
+        InMemoryCache-->>ServiceAPI: Return Cached Data
+    else Cache Miss
+        ServiceAPI->>DataSource: Processed User Data
+        DataSource-->>ServiceAPI: Return User Data
+        ServiceAPI->>InMemoryCache: Save Cache Date
     end
 
-    alt Complex Query
-        ServiceAPI->>DataSource: Fetch Paginated/Filtered Data
-        DataSource->>Database: Complex Query
-        Database-->>DataSource: Query Results
-        DataSource-->>ServiceAPI: Processed Results
-    end
+    alt User Creation/Login
+            ServiceAPI->>DataSource: Prepare User Data
+            DataSource->>Database: Insert/Retrieve User
+            Database-->>DataSource: Return User Data
+            DataSource-->>ServiceAPI: Processed User Data
+            ServiceAPI->>InMemoryCache: Store Data
+        end
+
+        alt Complex Query
+            ServiceAPI->>DataSource: Fetch Paginated/Filtered Data
+            DataSource->>Database: Complex Query
+            Database-->>DataSource: Query Results
+            DataSource-->>ServiceAPI: Processed Results
+            ServiceAPI->>InMemoryCache: Store Results
+        end
 
     alt KV Storage Operation
         ServiceAPI->>DataSource: KV Storage Request
@@ -1095,7 +1117,18 @@ classDiagram
         +authenticateUser()
         +updateUser()
         +deleteUser()
+        +getCachedData()
+        +setCachedData()
+        +invalidateCache()
         -validateBusinessLogic()
+    }
+
+    class InMemoryCache {
+        +get(key)
+        +set(key, value)
+        +delete(key)
+        +clear()
+        +has(key)
     }
 
     class DataSource {
@@ -1127,6 +1160,7 @@ classDiagram
 
     GraphQLResolver --> ServiceAPI : uses
     ServiceAPI --> DataSource : uses
+    ServiceAPI --> InMemoryCache : manages
     DataSource --> Database : interacts
     GraphQLResolver ..> AuthMiddleware : security
     GraphQLResolver ..> ErrorHandler : error management
