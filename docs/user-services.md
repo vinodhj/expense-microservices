@@ -710,21 +710,190 @@ type Mutation {
 
 ### Resolvers (Query/Mutation)
 
-Resolvers implement the GraphQL schema operations, connecting client requests to the appropriate service API interfaces
+The resolvers implement the GraphQL schema operations, translating client requests into service layer method calls. They are responsible for:
 
-TODO: docs
+- Validating input
+- Calling appropriate service methods
+- Formatting and returning responses
+- Handling authorization and access control
 
 ### Service API Interfaces
 
 The service layer provides business logic implementation between resolvers and data sources
 
-TODO: docs
+- User Service API
+- Auth Service API
+- KV Storage Service API
 
 ### Data Sources
 
 The data sources layer provides an abstraction over the database access, implementing repository patterns for each entity:
 
-TODO: docs
+- User Data Source
+- Auth Data Source
+- KV Storage Data Source
+
+**Implementation Notes**
+
+1. All methods should implement thorough input validation
+2. Use dependency injection for services and data sources
+3. Implement consistent error handling across all layers
+4. Use transactions for critical database operations
+5. Implement logging for all significant events and errors
+
+### User Service Component Interaction Flow
+
+```mermaid
+flowchart TB
+    subgraph "Client Interaction"
+        A[GraphQL Client] --> B[GraphQL Resolver]
+    end
+
+    subgraph "Backend Components"
+        B --> C[Service API Layer]
+        C --> D[Data Sources]
+        D --> E[(Database D1)]
+        D --> F[(Redis)]
+        D --> G[(KV Storage)]
+    end
+
+    subgraph "Resolver Types"
+        Q1[Query Resolvers]
+        Q2[Mutation Resolvers]
+    end
+
+    subgraph "Service API Interfaces"
+        S1[User Service]
+        S2[Auth Service]
+        S3[KV Storage Service]
+    end
+
+    subgraph "Data Source Types"
+        DS1[User Data Source]
+        DS2[Auth Data Source]
+        DS3[KV Storage Data Source]
+    end
+
+    B --> Q1
+    B --> Q2
+
+    Q1 --> S1
+    Q2 --> S1
+    Q2 --> S2
+
+    S1 --> DS1
+    S2 --> DS2
+    S3 --> DS3
+
+    style A fill:#f9f,stroke:#333,stroke-width:4px
+    style B fill:#bbf,stroke:#333,stroke-width:2px
+    style C fill:#bfb,stroke:#333,stroke-width:2px
+    style D fill:#ff9,stroke:#333,stroke-width:2px
+    style E fill:#f99,stroke:#333,stroke-width:2px
+    style F fill:#9f9,stroke:#333,stroke-width:2px
+    style G fill:#99f,stroke:#333,stroke-width:2px
+```
+
+### User Service Detailed Interaction Sequence
+
+```mermaid
+sequenceDiagram
+    participant Client as GraphQL Client
+    participant Resolver as GraphQL Resolver
+    participant ServiceAPI as Service API Layer
+    participant DataSource as Data Source
+    participant Database as Database (D1)
+    participant Redis as Redis
+    participant KV as KV Storage
+
+    Client->>Resolver: GraphQL Request
+
+    alt Authentication Required
+        Resolver->>ServiceAPI: Validate User Session
+        ServiceAPI->>Redis: Check Token Validity
+    end
+
+    Resolver->>ServiceAPI: Call Appropriate Service Method
+
+    alt User Creation/Login
+        ServiceAPI->>DataSource: Prepare User Data
+        DataSource->>Database: Insert/Retrieve User
+        Database-->>DataSource: Return User Data
+        DataSource-->>ServiceAPI: Processed User Data
+    end
+
+    alt Complex Query
+        ServiceAPI->>DataSource: Fetch Paginated/Filtered Data
+        DataSource->>Database: Complex Query
+        Database-->>DataSource: Query Results
+        DataSource-->>ServiceAPI: Processed Results
+    end
+
+    alt KV Storage Operation
+        ServiceAPI->>DataSource: KV Storage Request
+        DataSource->>KV: Get/Set/Delete Asset
+        KV-->>DataSource: Asset Operation Result
+        DataSource-->>ServiceAPI: Operation Confirmation
+    end
+
+    ServiceAPI-->>Resolver: Return Processed Data
+    Resolver-->>Client: GraphQL Response
+```
+
+### User Service Component Relationships
+
+```mermaid
+classDiagram
+    class GraphQLResolver {
+        +resolveQuery()
+        +resolveMutation()
+        -validateInput()
+        -handleAuthorization()
+    }
+
+    class ServiceAPI {
+        +createUser()
+        +authenticateUser()
+        +updateUser()
+        +deleteUser()
+        -validateBusinessLogic()
+    }
+
+    class DataSource {
+        +insert()
+        +findByEmail()
+        +update()
+        +delete()
+        -mapToEntity()
+        -mapToDTO()
+    }
+
+    class Database {
+        +executeQuery()
+        +beginTransaction()
+        +commitTransaction()
+    }
+
+    class AuthMiddleware {
+        +validateToken()
+        +checkPermissions()
+        +generateToken()
+    }
+
+    class ErrorHandler {
+        +handleError()
+        +logError()
+        +formatGraphQLError()
+    }
+
+    GraphQLResolver --> ServiceAPI : uses
+    ServiceAPI --> DataSource : uses
+    DataSource --> Database : interacts
+    GraphQLResolver ..> AuthMiddleware : security
+    GraphQLResolver ..> ErrorHandler : error management
+    ServiceAPI ..> ErrorHandler : error handling
+    DataSource ..> ErrorHandler : error reporting
+```
 
 ## Error Handling
 
