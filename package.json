@@ -13,7 +13,8 @@
     "ws-remove-prod": "bash ./shell-script/ws-remove-prod.sh",
     "test:all": "./shell-script/run-test.sh",
     "format": "prettier --write \"**/*.{ts,tsx,md,json,mts,d.ts}\" --no-error-on-unmatched-pattern",
-    "prepare": "husky"
+    "prepare": "husky",
+    "cleanup-branches": "bash ./shell-script/cleanup-branches.sh"
   },
   "workspaces": [
     "services/*",
