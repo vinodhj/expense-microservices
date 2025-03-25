@@ -14,7 +14,11 @@ The User Service is a microservice in our architecture that provides user manage
 - [Core Components](#core-components)
 - [Request Flow](#request-flow)
 - [Directory Structure](#directory-structure)
+- [DB Structure](#db-structure)
 - [Error Handling](#error-handling)
+- [Testing](#testing)
+- [Deployment and CI/CD](#deployment-and-cicd)
+- [Conclusion](#conclusion)
 
 ## Technical Stack
 
