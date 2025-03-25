@@ -84,7 +84,7 @@ flowchart TB
         DataSources --> CloudflareKV
     end
 
-    classDef highlight fill:#f9f,stroke:#333,stroke-width:2px;color:#333
+    classDef highlight fill:#f9f,stroke:#333,stroke-width:2px,color:#333
     class UserService,Client,Gateway,D1DB,RedisStore,CloudflareKV,InMemoryCache highlight
 ```
 
