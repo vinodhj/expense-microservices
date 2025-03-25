@@ -56,12 +56,13 @@ flowchart TB
     Gateway --> UserService[User Service]
     Gateway --> OtherServices[Other Microservices]
 
-    UserService --> DB[(D1 Database)]
-    UserService --> Redis[(Upstash Redis)]
-    UserService --> KV[(Cloudflare KV)]
+    UserService --> D1DB[(D1 Database)]
+    UserService --> RedisStore[(Upstash Redis)]
+    UserService --> CloudflareKV[(Cloudflare KV)]
     UserService --> InMemoryCache[(In-Memory Cache)]
 
     subgraph "User Service Components"
+        direction TB
         Worker[Worker Entry Point] --> GraphQLHandler[GraphQL Handler]
         Worker --> KVSyncHandler[KV Sync Handler]
         Worker --> CORSHandler[CORS Handler]
@@ -70,14 +71,21 @@ flowchart TB
         GraphQLHandler --> SecurityMiddleware[Security Middleware]
         GraphQLHandler --> GraphQLPlugins[GraphQL Plugins]
         GraphQLHandler --> Resolvers[Resolvers]
-        GraphQLHandler --> InMemoryCache[In-Memory Cache]
 
-        Resolvers -->  Services[Service Layer]
+        SecurityMiddleware --> GraphQLPlugins
+        GraphQLPlugins --> Resolvers
+
+        Resolvers --> Services[Service Layer]
         Services --> DataSources[Data Sources]
-        DataSources --> InMemoryCache
+
+        Services --> InMemoryCache
+        DataSources --> D1DB
+        DataSources --> RedisStore
+        DataSources --> CloudflareKV
     end
 
-    class UserService,Client,Gateway,DB,Redis,KV,Worker,InMemoryCache highlight
+    classDef highlight fill:#f9f,stroke:#333,stroke-width:2px;color:#333
+    class UserService,Client,Gateway,D1DB,RedisStore,CloudflareKV,InMemoryCache highlight
 ```
 
 ### Request Flow Diagram
@@ -87,12 +95,12 @@ sequenceDiagram
     participant Client
     participant Gateway
     participant UserService
-    participant InMemoryCache
     participant SecurityMiddleware
     participant GraphQLPlugins
     participant Redis
     participant Resolvers
     participant ServiceAPI
+    participant InMemoryCache
     participant DataSources
     participant DB
     participant KV
@@ -101,30 +109,31 @@ sequenceDiagram
     Gateway->>Gateway: Add Security Headers
     Gateway->>UserService: Forward Request
 
-    UserService->>InMemoryCache: Check Cached Data
+    UserService->>SecurityMiddleware: Validate Security Headers
+    SecurityMiddleware->>GraphQLPlugins: Pass to Next Middleware
+
+    GraphQLPlugins->>Redis: Check Nonce
+    Redis->>GraphQLPlugins: Nonce Status
+
+    GraphQLPlugins->>Resolvers: Execute GraphQL Operation
+    Resolvers->>ServiceAPI: Call Service API
+
+    ServiceAPI->>InMemoryCache: Check Cached Data(user service API only)
 
     alt Cache Hit
-        InMemoryCache-->>UserService: Return Cached Data
-        UserService->>Gateway: Respond with Cached Data
+        InMemoryCache-->>ServiceAPI: Return Cached Data
+        ServiceAPI->>Gateway: Respond with Cached Data
     else Cache Miss
-        UserService->>SecurityMiddleware: Validate Security Headers
-        SecurityMiddleware->>UserService: Headers Valid
-
-        UserService->>GraphQLPlugins: Execute Plugins
-        GraphQLPlugins->>Redis: Check Nonce(If nonce is enabled)
-        Redis->>GraphQLPlugins: Nonce Status
-
-        UserService->>Resolvers: Execute GraphQL Operation
-        Resolvers->>ServiceAPI: Call service API
-        ServiceAPI->>DataSources: Fetch/Update Data
-        DataSources->>DB: Database Operations
-        DB->>DataSources: Data Results
+        ServiceAPI->>DataSources: Fetch Data
+        DataSources->>DB: Database Query
+        DB->>DataSources: Query Results
         DataSources->>ServiceAPI: Return Data
 
         ServiceAPI->>InMemoryCache: Store Fetched Data
+        ServiceAPI->>KV: Perform KV Operations
+        ServiceAPI->>Redis: Save Auth Token Version
 
-        GraphQLPlugins->>Redis: Store Used Nonce(If nonce is enabled)
-        UserService->>Gateway: Response with Data
+        ServiceAPI->>Gateway: Response with Data
     end
 
     Gateway->>Client: Final Response
@@ -383,6 +392,12 @@ classDiagram
         +fetch(request, env)
     }
 
+    class ScheduledJobHandler {
+        +runCacheCleanup()
+        +runFullCacheClear()
+        +scheduleTasks()
+    }
+
     class CORSHandler {
         +handleCorsPreflight(request, env)
         +addCORSHeaders(request, response, env)
@@ -406,7 +421,16 @@ classDiagram
 
     class GraphQLPlugins {
         +createNonceStoragePlugin(redis)
-        +createMetricsPlugin
+        +createMetricsPlugin()
+    }
+
+    class Resolvers {
+        +resolveOperation(context)
+    }
+
+    class ServiceAPI {
+        +invokeService(operation)
+        +fetchFromDatabase(query)
     }
 
     class InMemoryCache {
@@ -428,11 +452,15 @@ classDiagram
     Worker --> CORSHandler
     Worker --> GraphQLHandler
     Worker --> KVSyncHandler
+    Worker --> ScheduledJobHandler
+
     GraphQLHandler --> SecurityMiddleware
     GraphQLHandler --> GraphQLPlugins
-    GraphQLHandler --> InMemoryCache
-    GraphQLHandler --> DataSources
-    DataSources --> InMemoryCache: Uses for caching
+    GraphQLHandler --> Resolvers
+
+    Resolvers --> ServiceAPI
+    ServiceAPI --> InMemoryCache: checks cache
+    ServiceAPI --> DataSources: fetch data
 ```
 
 #### Caching Workflow
@@ -446,7 +474,7 @@ sequenceDiagram
     participant Database
 
     Client->>GraphQLHandler: GraphQL Query
-    GraphQLHandler->>InMemoryCache: Check Cache
+    GraphQLHandler->>InMemoryCache: Check Cache (user service API only)
 
     alt Cache Hit
         InMemoryCache-->>GraphQLHandler: Return Cached Data
