@@ -452,69 +452,7 @@ Handles Cross-Origin Resource Sharing (CORS) headers and preflight requests.
 ├── index.ts                   # Main worker entry point
 ```
 
-### Database Schema
-
-```mermaid
-erDiagram
-    USER {
-        string id PK
-        string email
-        string name
-        string password_hash
-        enum role
-        timestamp created_at
-        timestamp updated_at
-    }
-```
-
-## Error Handling
-
-The service implements structured error handling with GraphQL error extensions:
-
-```typescript
-throw new GraphQLError("Error message", {
-  extensions: {
-    code: "ERROR_CODE",
-    status: 4xx, // HTTP status code
-    // Additional metadata
-  }
-});
-```
-
-### Error Flow
-
-```mermaid
-flowchart TD
-    A[Error Occurs] --> B{Error Type?}
-
-    B -->|Security| C[GraphQLError with Security Code]
-    B -->|Validation| D[GraphQLError with Validation Code]
-    B -->|Database| E[GraphQLError with DB Code]
-    B -->|Other| F[GraphQLError with Internal Code]
-
-    C --> G[Add Status Code]
-    D --> G
-    E --> G
-    F --> G
-
-    G --> H[Add Metadata]
-    H --> I[Log Error]
-    I --> J[Return to Client]
-```
-
-### Common Error Codes
-
-- `UNAUTHORIZED`: Invalid project token
-- `GATEWAY_UNAUTHORIZED`: Missing security headers
-- `INVALID_SIGNATURE`: Signature verification failed
-- `REQUEST_TIMEOUT`: Request timestamp too old
-- `REPLAY_ATTACK`: Nonce already used
-- `VALIDATION_ERROR`: Input validation failed
-- `NOT_FOUND`: Requested resource not found
-- `FORBIDDEN`: Insufficient permissions
-- `INTERNAL_SERVER_ERROR`: Unexpected server error
-
-## DB Structure
+### DB Structure
 
 **user**
 
@@ -541,6 +479,27 @@ flowchart TD
 - `idx_email` on **email**
 - `idx_phone` on **phone**
 - `composite_email_phone` (Unique) on **email** and **phone**
+
+```mermaid
+erDiagram
+    USER {
+        string id PK
+        string name
+        string email
+        string password
+        enum role
+        string phone
+        string address
+        string city
+        string state
+        string country
+        string zipcode
+        integer created_at
+        integer updated_at
+        string created_by
+        string updated_by
+    }
+```
 
 ## GraphQL Schema, Resolvers, Service API Interfaces and Data Sources
 
@@ -769,6 +728,18 @@ TODO: docs
 
 ### Error Handling
 
+The service implements structured error handling with GraphQL error extensions:
+
+```typescript
+throw new GraphQLError("Error message", {
+  extensions: {
+    code: "ERROR_CODE",
+    status: 4xx, // HTTP status code
+    // Additional metadata
+  }
+});
+```
+
 **General Principles**
 
 1. **Explicit Error Types**: Define custom error types that clearly describe different error conditions. This helps clients understand the nature of the error and how to respond to it.
@@ -783,6 +754,39 @@ TODO: docs
 
 1. **`message`**: A human-readable error message.
 2. **`extensions`**: An optional field that can include additional details such as error codes, type of error, and other relevant information.
+
+## Error Flow
+
+```mermaid
+flowchart TD
+    A[Error Occurs] --> B{Error Type?}
+
+    B -->|Security| C[GraphQLError with Security Code]
+    B -->|Validation| D[GraphQLError with Validation Code]
+    B -->|Database| E[GraphQLError with DB Code]
+    B -->|Other| F[GraphQLError with Internal Code]
+
+    C --> G[Add Status Code]
+    D --> G
+    E --> G
+    F --> G
+
+    G --> H[Add Metadata]
+    H --> I[Log Error]
+    I --> J[Return to Client]
+```
+
+## Common Error Codes
+
+- `UNAUTHORIZED`: Invalid project token
+- `GATEWAY_UNAUTHORIZED`: Missing security headers
+- `INVALID_SIGNATURE`: Signature verification failed
+- `REQUEST_TIMEOUT`: Request timestamp too old
+- `REPLAY_ATTACK`: Nonce already used
+- `VALIDATION_ERROR`: Input validation failed
+- `NOT_FOUND`: Requested resource not found
+- `FORBIDDEN`: Insufficient permissions
+- `INTERNAL_SERVER_ERROR`: Unexpected server error
 
 ### Testing
 
