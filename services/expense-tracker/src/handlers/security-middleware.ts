@@ -1,7 +1,7 @@
 import { GraphQLError } from "graphql";
 import { SessionUserType } from "@src/services";
 import { Role } from "./graphql";
-// import crypto from "crypto";
+import { generateHmacSignature } from "./crypto";
 
 // Constants
 const MAX_REQUEST_AGE_MS = 5 * 60 * 1000; // 5 minutes
@@ -104,20 +104,20 @@ export class SecurityMiddleware {
     const matchesGatewaySignature = is_schema_federation === "true" && this.constantTimeCompare(signature, env.GATEWAY_SIGNATURE);
 
     // This is to allow the gateway to build the supergraph or codegen without needing to sign requests in dev
-    // if (matchesGatewaySignature) {
-    //   console.warn("Skipping signature verification for gateway request to allow gateway to build supergraph or codegen schema generation");
-    // } else {
-    //   const payload = authorization ? `${userId ?? ""}:${userRole ?? ""}:${timestamp}:${nonce}` : `public:${timestamp}:${nonce}`;
-    //   const expectedSignature = crypto.createHmac("sha256", env.GATEWAY_SECRET).update(payload).digest("hex");
+    if (matchesGatewaySignature) {
+      console.warn("Skipping signature verification for gateway request to allow gateway to build supergraph or codegen schema generation");
+    } else {
+      const signaturePayload = authorization ? `${userId ?? ""}:${userRole ?? ""}:${timestamp}:${nonce}` : `public:${timestamp}:${nonce}`;
+      const expectedSignature = await generateHmacSignature(env.GATEWAY_SECRET, signaturePayload);
 
-    //   // Use constant-time comparison
-    //   if (!this.constantTimeCompare(signature, expectedSignature)) {
-    //     console.warn(`Invalid signature detected for user: ${userId ?? "anonymous"}`);
-    //     throw new GraphQLError("Invalid signature from gateway", {
-    //       extensions: { code: "INVALID_SIGNATURE", status: 401 },
-    //     });
-    //   }
-    // }
+      // Use constant-time comparison
+      if (!this.constantTimeCompare(signature, expectedSignature)) {
+        console.warn(`Invalid signature detected for user: ${userId ?? "anonymous"}`);
+        throw new GraphQLError("Invalid signature from gateway", {
+          extensions: { code: "INVALID_SIGNATURE", status: 401 },
+        });
+      }
+    }
 
     return { nonceKey, noncetimestamp };
   }
