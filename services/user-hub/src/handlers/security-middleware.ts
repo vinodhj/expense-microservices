@@ -1,5 +1,5 @@
 import { GraphQLError } from "graphql";
-import crypto from "crypto";
+import { generateHmacSignature } from "./crypto";
 
 // Constants
 const MAX_REQUEST_AGE_MS = 5 * 60 * 1000; // 5 minutes
@@ -68,8 +68,8 @@ export class SecurityMiddleware {
     if (matchesGatewaySignature) {
       console.warn("Skipping signature verification for gateway request to allow gateway to build supergraph or codegen schema generation");
     } else {
-      const payload = authorization ? `${userId ?? ""}:${userRole ?? ""}:${timestamp}:${nonce}` : `public:${timestamp}:${nonce}`;
-      const expectedSignature = crypto.createHmac("sha256", env.GATEWAY_SECRET).update(payload).digest("hex");
+      const signaturePayload = authorization ? `${userId ?? ""}:${userRole ?? ""}:${timestamp}:${nonce}` : `public:${timestamp}:${nonce}`;
+      const expectedSignature = await generateHmacSignature(env.GATEWAY_SECRET, signaturePayload);
 
       // Use constant-time comparison
       if (!this.constantTimeCompare(signature, expectedSignature)) {
