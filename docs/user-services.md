@@ -59,35 +59,54 @@ flowchart TB
     UserService --> DB[(D1 Database)]
     UserService --> Redis[(Upstash Redis)]
     UserService --> KV[(Cloudflare KV)]
+    UserService --> InMemoryCache[(In-Memory Cache)]
 
     subgraph "User Service Components"
         Worker[Worker Entry Point] --> GraphQLHandler[GraphQL Handler]
         Worker --> KVSyncHandler[KV Sync Handler]
         Worker --> CORSHandler[CORS Handler]
+        Worker --> CacheManager[Cache Management]
 
         GraphQLHandler --> SecurityMiddleware[Security Middleware]
         GraphQLHandler --> GraphQLPlugins[GraphQL Plugins]
         GraphQLHandler --> Resolvers[Resolvers]
+        GraphQLHandler --> InMemoryCache[In-Memory Cache]
 
         Resolvers -->  Services[Service Layer]
         Services --> DataSources[Data Sources]
+        DataSources --> InMemoryCache
     end
 
-    class UserService,Client,Gateway,DB,Redis,KV,Worker highlight
+    class UserService,Client,Gateway,DB,Redis,KV,Worker,InMemoryCache highlight
 ```
 
 ### Request Flow Diagram
 
 ```mermaid
 sequenceDiagram
-    Client->>+Gateway: Request with Auth Headers
+    participant Client
+    participant Gateway
+    participant UserService
+    participant InMemoryCache
+    participant SecurityMiddleware
+    participant GraphQLPlugins
+    participant Redis
+    participant Resolvers
+    participant ServiceAPI
+    participant DataSources
+    participant DB
+    participant KV
+
+    Client->>Gateway: Request with Auth Headers
     Gateway->>Gateway: Add Security Headers
-    Gateway->>+UserService: Forward Request
+    Gateway->>UserService: Forward Request
 
-    UserService->>UserService: Verify CORS
-    UserService->>UserService: Route Request
+    UserService->>InMemoryCache: Check Cached Data
 
-    alt GraphQL Request
+    alt Cache Hit
+        InMemoryCache-->>UserService: Return Cached Data
+        UserService->>Gateway: Respond with Cached Data
+    else Cache Miss
         UserService->>SecurityMiddleware: Validate Security Headers
         SecurityMiddleware->>UserService: Headers Valid
 
@@ -101,18 +120,14 @@ sequenceDiagram
         DataSources->>DB: Database Operations
         DB->>DataSources: Data Results
         DataSources->>ServiceAPI: Return Data
-        ServiceAPI-->>Resolvers: Return Data
+
+        ServiceAPI->>InMemoryCache: Store Fetched Data
 
         GraphQLPlugins->>Redis: Store Used Nonce(If nonce is enabled)
-        UserService->>UserService: Apply CORS Headers
-    else KV Sync
-        UserService->>UserService: Validate KV Sync Token
-        UserService->>KV: Update KV Store
-        KV->>UserService: Confirmation
+        UserService->>Gateway: Response with Data
     end
 
-    UserService->>-Gateway: Response
-    Gateway->>-Client: Final Response
+    Gateway->>Client: Final Response
 ```
 
 ## Development Setup
@@ -512,17 +527,30 @@ async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext
 
 ```mermaid
 flowchart TD
-    A[Cache Creation] --> B{Current Traffic}
-    B -->|Low Traffic| C[In-Memory Map Cache]
-    B -->|High Traffic| D[Distributed Cache Redis]
+    A[Scheduled Cache Job] --> B{Job Type}
 
-    C --> E[Periodic Cleanup]
-    E --> F[Cleanup Every 6 Hours]
-    E --> G[Daily Full Clear]
+    B -->|Periodic Cleanup| C[Remove Expired Entries]
+    C --> D[Iterate Through Cache]
+    D --> E[Check Entry TTL]
+    E --> F{Entry Expired?}
+    F -->|Yes| G[Remove Entry]
+    F -->|No| H[Keep Entry]
 
-    D --> H[Sophisticated Caching Strategy]
-    H --> I[Intelligent Cache Invalidation]
-    H --> J[Distributed Cache Management]
+    B -->|Daily Full Clear| I[Complete Cache Reset]
+    I --> J[Clear All Cache Entries]
+
+    subgraph "Cache Performance Strategy"
+        K[Low Traffic] --> L[In-Memory Map Cache]
+        L --> M[6-Hour Cleanup Interval]
+
+        N[High Traffic] --> O[Distributed Cache]
+        O --> P[More Frequent Partial Cleanups]
+        O --> Q[Advanced Invalidation Strategies]
+    end
+
+    G --> R[Log Cleanup Details]
+    H --> R
+    J --> R
 ```
 
 ### Performance and Scalability Notes
