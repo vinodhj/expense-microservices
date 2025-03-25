@@ -1,8 +1,22 @@
 import handleKVSync from "./handlers/kv-sync";
 import handleGraphQL from "./handlers/graphql";
 import { handleCorsPreflight } from "./cors-headers";
+import { runCacheCleanup, runCleanCacheAll } from "./handlers/cron-scheduled";
 
 export default {
+  async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext) {
+    // ✅ Cron Schedule Jobs
+    switch (controller.cron) {
+      case "0 */6 * * *":
+        await runCacheCleanup(env, ctx);
+        break;
+      case "0 1 * * *":
+        await runCleanCacheAll(env, ctx);
+        break;
+      default:
+        console.error(`Unsupported cron schedule: ${controller.cron}`);
+    }
+  },
   async fetch(request: Request, env: Env): Promise<Response> {
     console.log(`Running in: ${env.ENVIRONMENT} mode`);
     const url = new URL(request.url);
