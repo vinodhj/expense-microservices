@@ -1,9 +1,9 @@
 import { ResolveUserFn, ValidateUserFn } from "@graphql-hive/gateway-runtime";
 import { jwtVerifyToken } from "./helper/jwt-verify-token";
-import crypto from "crypto";
 import { GraphQLError } from "graphql";
 import { Redis } from "@upstash/redis/cloudflare";
 import { isPublicOperation } from "./helper/public-operation";
+import { generateHmacSignature } from "./helper/crypto";
 
 // Auth functions factory
 export const createAuthFunctions = (env: Env, redis: Redis) => {
@@ -29,7 +29,7 @@ export const createAuthFunctions = (env: Env, redis: Redis) => {
       // TODO : Check if this is a public operation - `public:${operationName}:${timestamp}:${nonce}`;
       // Generate public operation signature including nonce
       const signaturePayload = `public:${timestamp}:${nonce}`;
-      const signature = crypto.createHmac("sha256", env.GATEWAY_SECRET).update(signaturePayload).digest("hex");
+      const signature = await generateHmacSignature(env.GATEWAY_SECRET, signaturePayload);
 
       context.gateway_signature = signature;
       return null; // No auth token provided
@@ -54,7 +54,7 @@ export const createAuthFunctions = (env: Env, redis: Redis) => {
 
       // Generate signature based on headers and shared secret
       const signaturePayload = `${jwtToken.id}:${jwtToken.role}:${timestamp}:${nonce}`;
-      const signature = crypto.createHmac("sha256", env.GATEWAY_SECRET).update(signaturePayload).digest("hex");
+      const signature = await generateHmacSignature(env.GATEWAY_SECRET, signaturePayload);
 
       // Add signature and timestamp to context
       context.gateway_signature = signature;
