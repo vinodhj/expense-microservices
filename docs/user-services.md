@@ -331,6 +331,35 @@ export default {
 } as ExportedHandler<Env>;
 ```
 
+### In-Memory Cache
+
+We've implemented an in-memory caching mechanism to improve performance and reduce database load for frequently accessed user data. The `InMemoryCache` class provides a flexible caching solution with the following key features:
+
+- Configurable Time-to-Live (TTL)
+- Automatic cache entry expiration
+- Pattern-based key invalidation
+- Thread-safe operations using JavaScript's `Map`
+
+#### Cache Implementation Details
+
+```typescript
+export class InMemoryCache<T> {
+  private readonly cache: Map<string, CacheEntry<T>>;
+  private readonly ttl: number;
+
+  constructor(ttlInSeconds = 300) {
+    this.cache = new Map();
+    this.ttl = ttlInSeconds * 1000; // Convert to milliseconds
+  }
+
+  // Methods: get, set, delete, clear,
+  // getKeysByPattern, invalidateByPattern, cleanupExpired
+}
+
+// Dedicated cache instance for user-related data
+export const userCache = new InMemoryCache(15 * 60); // 15 minutes TTL
+```
+
 ### Component Interaction
 
 ```mermaid
@@ -365,12 +394,166 @@ classDiagram
         +createMetricsPlugin
     }
 
+    class InMemoryCache {
+        +get(key)
+        +set(key, data)
+        +delete(key)
+        +cleanupExpired()
+        +getKeysByPattern(pattern)
+        +invalidateByPattern(pattern)
+    }
+
+    class DataSources {
+        +getUserById(id)
+        +getUserByEmail(email)
+        +createUser(userData)
+        +updateUser(userData)
+    }
+
     Worker --> CORSHandler
     Worker --> GraphQLHandler
     Worker --> KVSyncHandler
     GraphQLHandler --> SecurityMiddleware
     GraphQLHandler --> GraphQLPlugins
+    GraphQLHandler --> InMemoryCache
+    GraphQLHandler --> DataSources
+    DataSources --> InMemoryCache: Uses for caching
 ```
+
+#### Caching Workflow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant GraphQLHandler
+    participant InMemoryCache
+    participant DataSource
+    participant Database
+
+    Client->>GraphQLHandler: GraphQL Query
+    GraphQLHandler->>InMemoryCache: Check Cache
+
+    alt Cache Hit
+        InMemoryCache-->>GraphQLHandler: Return Cached Data
+        GraphQLHandler-->>Client: Respond with Cached Data
+    else Cache Miss
+        GraphQLHandler->>DataSource: Fetch Data
+        DataSource->>Database: Query
+        Database-->>DataSource: Return Data
+        DataSource-->>GraphQLHandler: Return Data
+        GraphQLHandler->>InMemoryCache: Store in Cache
+        GraphQLHandler-->>Client: Respond with Fresh Data
+    end
+```
+
+### Caching Strategy
+
+- **Current Stage**: Using JavaScript's native `Map` for low-traffic scenarios
+- **Traffic Handling**:
+  - Low Traffic: In-memory cache with `Map`
+  - High Traffic: Planned migration to distributed Redis cache
+
+### Considerations and Future Improvements
+
+1. **Performance Monitoring**: Implement cache hit/miss tracking
+2. **Cache Invalidation**: Robust strategies for updating cached data
+3. **Scalability**: Prepare for migration to distributed caching
+4. **Memory Management**: Implement periodic cache cleanup
+
+## Scheduled Jobs and Cache Management
+
+### Cron Job Configuration
+
+The User Service implements scheduled cache management jobs to ensure efficient memory usage and data freshness:
+
+```json
+"triggers": {
+  "crons": [
+    "0 */6 * * *",  // Cache cleanup - expired entries - every 6 hours
+    "0 1 * * *"     // Full cache clear - daily at 1 AM
+  ]
+}
+```
+
+### Cache Cleanup Implementation
+
+## Scheduled Job Handler
+
+```typescript
+async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext) {
+  switch (controller.cron) {
+    case "0 */6 * * *":
+      await runCacheCleanup(env, ctx);
+      break;
+    case "0 1 * * *":
+      await runCleanCacheAll(env, ctx);
+      break;
+    default:
+      console.error(`Unsupported cron schedule: ${controller.cron}`);
+  }
+}
+```
+
+### Cache Cleanup Strategy
+
+#### Periodic Expired Entry Removal (Every 6 Hours)
+
+- Removes entries that have exceeded their Time-to-Live (TTL)
+- Helps prevent memory bloat
+- Ensures cache contains only valid, recent data
+
+#### Daily Full Cache Clear (1 AM Daily)
+
+- Completely clears the cache
+- Provides a comprehensive reset mechanism
+- Useful for preventing potential long-term memory accumulation
+
+### Caching Considerations
+
+```mermaid
+flowchart TD
+    A[Cache Creation] --> B{Current Traffic}
+    B -->|Low Traffic| C[In-Memory Map Cache]
+    B -->|High Traffic| D[Distributed Cache Redis]
+
+    C --> E[Periodic Cleanup]
+    E --> F[Cleanup Every 6 Hours]
+    E --> G[Daily Full Clear]
+
+    D --> H[Sophisticated Caching Strategy]
+    H --> I[Intelligent Cache Invalidation]
+    H --> J[Distributed Cache Management]
+```
+
+### Performance and Scalability Notes
+
+1. **Current Implementation**:
+
+   - Uses JavaScript's native `Map`
+   - Suitable for low-traffic scenarios
+   - Cleanup interval of 6 hours
+
+2. **Future Scalability Considerations**:
+   - Monitor cache performance
+   - Potential migration to Redis for distributed caching
+   - Adjust cleanup intervals based on traffic patterns
+   - Implement more sophisticated cache invalidation strategies
+
+### Recommended Cleanup Interval Guidelines
+
+- **Low Traffic**: 6-hour cleanup interval
+- **Moderate Traffic**: 30-minute cleanup interval
+- **High Traffic**:
+  - More frequent partial cleanups
+  - Consider distributed caching solutions
+
+### Monitoring and Logging
+
+- Console logs track cache cleanup operations
+- Future improvements may include:
+  - Detailed cache performance metrics
+  - Automated alerts for cache-related issues
+  - Comprehensive logging of cache operations
 
 ### GraphQL Handler (`handlers/graphql.ts`)
 
@@ -785,7 +968,7 @@ flowchart TB
     S2 --> DS2
     S3 --> DS3
 
-    style A fill:#f9f,stroke:#333,stroke-width:4px,color:#333
+    style A fill:#f9f,stroke:#333,stroke-width:2px,color:#333
     style B fill:#bbf,stroke:#333,stroke-width:2px,color:#333
     style C fill:#bfb,stroke:#333,stroke-width:2px,color:#333
     style D fill:#ff9,stroke:#333,stroke-width:2px,color:#333
