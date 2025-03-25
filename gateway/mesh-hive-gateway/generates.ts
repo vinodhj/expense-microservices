@@ -122,9 +122,23 @@ export type MutationSignUpArgs = {
   input: SignUpInput;
 };
 
+export type PageInfo = {
+  __typename?: "PageInfo";
+  endCursor?: Maybe<Scalars["String"]["output"]>;
+  hasNextPage: Scalars["Boolean"]["output"];
+};
+
+export type PaginatedUsersInputs = {
+  after?: InputMaybe<Scalars["String"]["input"]>;
+  first?: InputMaybe<Scalars["Int"]["input"]>;
+  sort?: InputMaybe<Sort>;
+  sort_by?: InputMaybe<Sort_By>;
+};
+
 export type Query = {
   __typename?: "Query";
   adminKvAsset?: Maybe<AdminKvAsset>;
+  paginatedUsers?: Maybe<UsersConnection>;
   userByEmail?: Maybe<UserResponse>;
   userByfield?: Maybe<Array<Maybe<UserResponse>>>;
   users?: Maybe<Array<Maybe<UserResponse>>>;
@@ -132,6 +146,11 @@ export type Query = {
 
 export type QueryAdminKvAssetArgs = {
   input: AdminKvAssetInput;
+};
+
+export type QueryPaginatedUsersArgs = {
+  ids?: InputMaybe<Array<Scalars["ID"]["input"]>>;
+  input?: InputMaybe<PaginatedUsersInputs>;
 };
 
 export type QueryUserByEmailArgs = {
@@ -145,6 +164,11 @@ export type QueryUserByfieldArgs = {
 export enum Role {
   Admin = "ADMIN",
   User = "USER",
+}
+
+export enum Sort_By {
+  CreatedAt = "CREATED_AT",
+  UpdatedAt = "UPDATED_AT",
 }
 
 export type SignUpInput = {
@@ -165,6 +189,11 @@ export type SignUpResponse = {
   success: Scalars["Boolean"]["output"];
   user?: Maybe<UserSuccessResponse>;
 };
+
+export enum Sort {
+  Asc = "ASC",
+  Desc = "DESC",
+}
 
 export type User = {
   __typename?: "User";
@@ -192,6 +221,12 @@ export type UserByEmailInput = {
 export type UserByFieldInput = {
   field: ColumnName;
   value: Scalars["String"]["input"];
+};
+
+export type UserEdge = {
+  __typename?: "UserEdge";
+  cursor: Scalars["String"]["output"];
+  node: User;
 };
 
 export type UserResponse = {
@@ -224,6 +259,12 @@ export type UserSuccessResponse = {
   role: Role;
   state?: Maybe<Scalars["String"]["output"]>;
   zipcode?: Maybe<Scalars["String"]["output"]>;
+};
+
+export type UsersConnection = {
+  __typename?: "UsersConnection";
+  edges: Array<UserEdge>;
+  pageInfo: PageInfo;
 };
 
 export enum Join__Graph {
