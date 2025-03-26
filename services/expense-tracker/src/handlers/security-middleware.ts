@@ -81,6 +81,10 @@ export class SecurityMiddleware {
       });
     }
 
+    // if (env.ENVIRONMENT === "DEV") {
+    //   return { nonceKey, noncetimestamp };
+    // }
+
     // Validate timestamp format
     const requestTime = parseInt(timestamp, 10);
     if (isNaN(requestTime)) {
