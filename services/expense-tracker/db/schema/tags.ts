@@ -13,7 +13,7 @@ export const expenseTags = sqliteTable(
       .notNull(),
     created_by: text("created_by").notNull(),
     updated_by: text("updated_by").notNull(),
-    isDisabled: integer("is_disabled", { mode: "boolean" }).default(false),
+    is_disabled: integer("is_disabled", { mode: "boolean" }).default(false),
   },
   (table) => [index("idx_tags_name").on(table.name)],
 );

@@ -13,18 +13,18 @@ export const expenseTracker = sqliteTable(
   "expense_tracker",
   {
     id: text("id").primaryKey(),
-    userId: text("user_id").notNull(),
-    expensePeriod: text("expense_period").notNull(),
+    user_id: text("user_id").notNull(),
+    expense_period: text("expense_period").notNull(),
     amount: real("amount").notNull().$type<number>(),
     description: text("description"),
-    itemDetails: text("item_details"),
-    tagId: text("tag_id")
+    item_details: text("item_details"),
+    tag_id: text("tag_id")
       .notNull()
       .references(() => expenseTags.id, { onUpdate: "restrict", onDelete: "restrict" }),
-    modeId: text("mode_id")
+    mode_id: text("mode_id")
       .notNull()
       .references(() => expenseModes.id, { onUpdate: "restrict", onDelete: "restrict" }),
-    fynixId: text("fynix_id")
+    fynix_id: text("fynix_id")
       .notNull()
       .references(() => expenseFynix.id, { onUpdate: "restrict", onDelete: "restrict" }),
     status: text("status", { enum: ["PAID", "UNPAID", "NEXTDUE"] })
@@ -38,14 +38,14 @@ export const expenseTracker = sqliteTable(
       .notNull(),
     created_by: text("created_by").notNull(),
     updated_by: text("updated_by").notNull(),
-    isDisabled: integer("is_disabled", { mode: "boolean" }).default(false),
+    is_disabled: integer("is_disabled", { mode: "boolean" }).default(false),
   },
   (table) => [
-    index("idx_expense_tracker_user_id").on(table.userId),
-    index("idx_user_expense_period").on(table.userId, table.expensePeriod),
-    index("idx_foreign_keys").on(table.tagId, table.modeId, table.fynixId),
-    index("composite_tag_amount").on(table.tagId, table.amount),
-    index("composite_mode_amount").on(table.modeId, table.amount),
-    index("composite_fynix_amount").on(table.fynixId, table.amount),
+    index("idx_expense_tracker_user_id").on(table.user_id),
+    index("idx_user_expense_period").on(table.user_id, table.expense_period),
+    index("idx_foreign_keys").on(table.tag_id, table.mode_id, table.fynix_id),
+    index("composite_tag_amount").on(table.tag_id, table.amount),
+    index("composite_mode_amount").on(table.mode_id, table.amount),
+    index("composite_fynix_amount").on(table.fynix_id, table.amount),
   ],
 );
