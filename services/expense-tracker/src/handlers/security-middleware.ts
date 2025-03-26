@@ -1,7 +1,7 @@
 import { GraphQLError } from "graphql";
 import { SessionUserType } from "@src/services";
 import { Role } from "./graphql";
-import { generateHmacSignature } from "./crypto";
+import { generateHmacSignature } from "@vinodhj/expense-shared-utils";
 
 // Constants
 const MAX_REQUEST_AGE_MS = 5 * 60 * 1000; // 5 minutes
@@ -109,7 +109,6 @@ export class SecurityMiddleware {
     } else {
       const signaturePayload = authorization ? `${userId ?? ""}:${userRole ?? ""}:${timestamp}:${nonce}` : `public:${timestamp}:${nonce}`;
       const expectedSignature = await generateHmacSignature(env.GATEWAY_SECRET, signaturePayload);
-
       // Use constant-time comparison
       if (!this.constantTimeCompare(signature, expectedSignature)) {
         console.warn(`Invalid signature detected for user: ${userId ?? "anonymous"}`);

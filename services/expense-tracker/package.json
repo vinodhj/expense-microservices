@@ -31,6 +31,7 @@
     "@apollo/subgraph": "^2.10.0",
     "@envelop/core": "^5.2.3",
     "@upstash/redis": "^1.34.5",
+    "@vinodhj/expense-shared-utils": "github:vinodhj/expense-shared-utils#v3.0.0",
     "dataloader": "^2.2.3",
     "drizzle-orm": "^0.38.3",
     "gql": "^1.1.2",
