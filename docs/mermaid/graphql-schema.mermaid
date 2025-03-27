@@ -1,0 +1,49 @@
+erDiagram
+    Category {
+        ID id
+        String name
+        DateTime created_at
+        DateTime updated_at
+        String created_by
+        String updated_by
+    }
+
+    ExpenseTracker {
+        ID id
+        String user_id
+        String expense_period
+        Float amount
+        String description
+        String item_details
+        ExpenseStatus status
+        DateTime created_at
+        DateTime updated_at
+        String created_by
+        String updated_by
+        Boolean is_disabled
+    }
+
+    ExpenseStatus ||--|| ExpenseTracker : defines
+    CategoryType ||--|| Category : categorizes
+
+    ExpenseTracker ||--|| Category : "has tag"
+    ExpenseTracker ||--|| Category : "has mode"
+    ExpenseTracker ||--|| Category : "has fynix"
+
+    Mutation {
+        createCategory
+        updateCategory
+        deleteCategory
+        createExpenseTracker
+        updateExpenseTracker
+        deleteExpenseTracker
+    }
+
+    Query {
+        expenseTags
+        expenseModes
+        expenseFynixes
+        expenseTrackerById
+        expenseTrackerByUserIds
+        paginatedExpenseTrackers
+    }
