@@ -231,7 +231,7 @@ export type QueryExpenseTrackerByUserIdsArgs = {
 
 export type QueryPaginatedExpenseTrackersArgs = {
   input?: InputMaybe<PaginatedExpenseInputs>;
-  user_id?: InputMaybe<Scalars["ID"]["input"]>;
+  session_id?: InputMaybe<Scalars["ID"]["input"]>;
 };
 
 export enum Sort_By {
