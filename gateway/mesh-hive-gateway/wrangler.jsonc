@@ -17,7 +17,7 @@
       "service": "user-hub",
     },
     {
-      "binding": "EXPENSE_TRACKER_WORKER",
+      "binding": "EXPENSE_SERVICE_WORKER",
       "service": "expense-tracker",
     },
   ],

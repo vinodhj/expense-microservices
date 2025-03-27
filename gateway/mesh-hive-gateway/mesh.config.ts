@@ -12,9 +12,6 @@ if (process.env.IS_ENV === "PROD") {
   PROXY_ORIGIN = process.env.PROD_PROXY_ORIGIN;
 }
 
-console.log("EXPENSE_TRACKER_URL", EXPENSE_TRACKER_URL);
-console.log("USER_SERVICE_URL", USER_SERVICE_URL);
-
 // Generate a random 16 character string
 function random16() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
