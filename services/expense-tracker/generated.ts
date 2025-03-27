@@ -30,6 +30,7 @@ export type Category = {
 };
 
 export type CategoryFilter = {
+  id?: InputMaybe<Scalars["ID"]["input"]>;
   search?: InputMaybe<Scalars["String"]["input"]>;
 };
 
@@ -162,7 +163,7 @@ export type MutationCreateExpenseTrackerArgs = {
 };
 
 export type MutationDeleteCategoryArgs = {
-  input?: InputMaybe<DeleteCategoryInput>;
+  input: DeleteCategoryInput;
 };
 
 export type MutationDeleteExpenseTrackerArgs = {
@@ -231,7 +232,7 @@ export type QueryExpenseTrackerByUserIdsArgs = {
 
 export type QueryPaginatedExpenseTrackersArgs = {
   input?: InputMaybe<PaginatedExpenseInputs>;
-  user_id?: InputMaybe<Scalars["ID"]["input"]>;
+  session_id?: InputMaybe<Scalars["ID"]["input"]>;
 };
 
 export enum Sort_By {
@@ -594,7 +595,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
     ContextType,
     RequireFields<MutationCreateExpenseTrackerArgs, "input">
   >;
-  deleteCategory?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType, Partial<MutationDeleteCategoryArgs>>;
+  deleteCategory?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType, RequireFields<MutationDeleteCategoryArgs, "input">>;
   deleteExpenseTracker?: Resolver<
     ResolversTypes["Boolean"],
     ParentType,

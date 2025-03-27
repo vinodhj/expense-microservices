@@ -80,6 +80,7 @@ export const typeDefs = gql`
   }
 
   input CategoryFilter {
+    id: ID
     search: String # Allow partial name matching
   }
 
@@ -192,7 +193,7 @@ export const typeDefs = gql`
     # Expense Tracker Queries
     expenseTrackerById(ids: ID!): ExpenseTracker
     expenseTrackerByUserIds(user_id: [ID!]!): [ExpenseTracker]!
-    paginatedExpenseTrackers(user_id: ID, input: PaginatedExpenseInputs): ExpenseTrackerConnection!
+    paginatedExpenseTrackers(session_id: ID, input: PaginatedExpenseInputs): ExpenseTrackerConnection!
   }
 
   # Mutation Types
@@ -200,7 +201,7 @@ export const typeDefs = gql`
     # Generic mutation for creating/updating/deleting category
     createCategory(input: CreateCategoryInput!): CategoryResponse!
     updateCategory(input: UpdateCategoryInput!): CategoryResponse!
-    deleteCategory(input: DeleteCategoryInput): Boolean!
+    deleteCategory(input: DeleteCategoryInput!): Boolean!
 
     # Expense Tracker Mutations
     createExpenseTracker(input: CreateExpenseTrackerInput!): ExpenseTrackerResponse!
