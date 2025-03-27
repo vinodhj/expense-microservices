@@ -185,7 +185,7 @@ export class CategoryDataSource {
           }
 
           if (search) {
-            conditions.push(like(tableName.name, `%${search}%`));
+            conditions.push(like(tableName.name, `%${search}`));
           }
 
           return and(...conditions);
