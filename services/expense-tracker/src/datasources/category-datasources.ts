@@ -1,19 +1,19 @@
 import { DrizzleD1Database } from "drizzle-orm/d1";
 import { SessionUserType } from "@src/services";
 import { GraphQLError } from "graphql";
-import { CategoryType } from "generated";
+import { Category, CategoryType } from "generated";
 import { nanoid } from "nanoid";
 import { expenseTags } from "db/schema/tags";
 import { expenseModes } from "db/schema/modes";
 import { expenseFynix } from "db/schema/fynix";
-import { eq, Table } from "drizzle-orm";
+import { and, eq, like, Table } from "drizzle-orm";
 import { SQLiteColumn } from "drizzle-orm/sqlite-core";
 
 // Define an interface to extend the Table type with column
 interface CategoryTable extends Table {
   id: SQLiteColumn;
   name: SQLiteColumn;
-  is_disabled?: SQLiteColumn;
+  is_disabled: SQLiteColumn;
   created_at?: SQLiteColumn;
   updated_at?: SQLiteColumn;
   created_by?: SQLiteColumn;
@@ -160,6 +160,62 @@ export class CategoryDataSource {
         });
       }
       throw new GraphQLError("Failed to delete category due to an unexpected error", {
+        extensions: {
+          code: "INTERNAL_SERVER_ERROR",
+          error,
+        },
+      });
+    }
+  }
+
+  async category({ category_type, search, id }: { category_type: CategoryType; search?: string; id?: string }) {
+    try {
+      const tableName = this.tables[category_type];
+
+      // Use a single query with conditional filtering
+      const result = await this.db
+        .select()
+        .from(tableName)
+        .where(() => {
+          // Always filter out disabled records
+          const conditions = [eq(tableName.is_disabled, false)];
+
+          if (id) {
+            conditions.push(eq(tableName.id, id));
+          }
+
+          if (search) {
+            conditions.push(like(tableName.name, `%${search}`));
+          }
+
+          return and(...conditions);
+        })
+        .execute();
+
+      if (!result) {
+        return [];
+      }
+
+      return (result as Category[]).map((categoryData: Category) => ({
+        id: categoryData.id,
+        name: categoryData.name,
+        created_at: categoryData.created_at,
+        created_by: categoryData.created_by,
+        updated_at: categoryData.updated_at,
+        updated_by: categoryData.updated_by,
+      }));
+    } catch (error) {
+      console.error("Category query error", error);
+      if (error instanceof GraphQLError || error instanceof Error) {
+        //to throw GraphQLError/original error
+        throw new GraphQLError(`Failed to fetch category: ${error.message ? "- " + error.message : ""}`, {
+          extensions: {
+            code: "INTERNAL_SERVER_ERROR",
+            error: error.message,
+          },
+        });
+      }
+      throw new GraphQLError("Failed to fetch category due to an unexpected error", {
         extensions: {
           code: "INTERNAL_SERVER_ERROR",
           error,

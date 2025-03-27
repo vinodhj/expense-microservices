@@ -80,6 +80,7 @@ export const typeDefs = gql`
   }
 
   input CategoryFilter {
+    id: ID
     search: String # Allow partial name matching
   }
 
@@ -200,7 +201,7 @@ export const typeDefs = gql`
     # Generic mutation for creating/updating/deleting category
     createCategory(input: CreateCategoryInput!): CategoryResponse!
     updateCategory(input: UpdateCategoryInput!): CategoryResponse!
-    deleteCategory(input: DeleteCategoryInput): Boolean!
+    deleteCategory(input: DeleteCategoryInput!): Boolean!
 
     # Expense Tracker Mutations
     createExpenseTracker(input: CreateExpenseTrackerInput!): ExpenseTrackerResponse!
