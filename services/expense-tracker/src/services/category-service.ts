@@ -9,6 +9,7 @@ import {
 } from "generated";
 import { SessionUserType } from ".";
 import { CategoryDataSource } from "@src/datasources/category-datasources";
+import { trackerCache } from "@src/cache/in-memory-cache";
 
 export class CategoryServiceAPI {
   private readonly categoryDataSource: CategoryDataSource;
@@ -37,7 +38,20 @@ export class CategoryServiceAPI {
   async category(category_type: CategoryType, input?: CategoryFilter): Promise<Array<Category>> {
     const search = input?.search ?? "";
     const id = input?.id ?? "";
-    console.log("CategoryFilter:", category_type);
-    return await this.categoryDataSource.category({ category_type, search, id });
+
+    const cacheKey = `category:${category_type}:${search}:${id}`;
+
+    // Try to get from cache first
+    const cachedResult = trackerCache.get(cacheKey);
+    if (cachedResult) {
+      return cachedResult;
+    }
+
+    const result = await this.categoryDataSource.category({ category_type, search, id });
+
+    // Store result in cache
+    trackerCache.set(cacheKey, result);
+
+    return result;
   }
 }
