@@ -14,6 +14,11 @@ export const createServiceRouter = (env: Env) => {
     if (url.includes(env.USER_SERVICE_URL)) {
       return env.USER_SERVICE_WORKER.fetch(url, options);
     }
+
+    if (url.includes(env.EXPENSE_TRACKER_URL)) {
+      return env.EXPENSE_SERVICE_WORKER.fetch(url, options);
+    }
+
     // You could add more service routing conditions here
 
     // Fallback to default fetch if no match

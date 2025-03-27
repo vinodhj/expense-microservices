@@ -2,7 +2,10 @@ export const supergraphSdl = /* GraphQL */ `
   schema
     @link(url: "https://specs.apollo.dev/link/v1.0")
     @link(url: "https://specs.apollo.dev/join/v0.3", for: EXECUTION)
-    @link(url: "https://the-guild.dev/graphql/mesh/spec/v1.0", import: ["@public", "@transport", "@extraSchemaDefinitionDirective"]) {
+    @link(
+      url: "https://the-guild.dev/graphql/mesh/spec/v1.0"
+      import: ["@transport", "@merge", "@extraSchemaDefinitionDirective", "@public"]
+    ) {
     query: Query
     mutation: Mutation
   }
@@ -47,10 +50,9 @@ export const supergraphSdl = /* GraphQL */ `
   }
 
   enum join__Graph {
+    EXPENSE_TRACKER @join__graph(name: "ExpenseTracker", url: "http://localhost:8502/graphql")
     USER_SERVICE @join__graph(name: "UserService", url: "http://localhost:8501/graphql")
   }
-
-  directive @public on FIELD_DEFINITION
 
   directive @transport(
     kind: String!
@@ -60,15 +62,187 @@ export const supergraphSdl = /* GraphQL */ `
     options: TransportOptions
   ) repeatable on SCHEMA
 
+  directive @merge(
+    subgraph: String
+    argsExpr: String
+    keyArg: String
+    keyField: String
+    key: [String!]
+    additionalArgs: String
+  ) repeatable on FIELD_DEFINITION
+
   directive @extraSchemaDefinitionDirective(directives: _DirectiveExtensions) repeatable on OBJECT
 
-  scalar DateTime @join__type(graph: USER_SERVICE)
+  directive @public on FIELD_DEFINITION
+
+  scalar DateTime @join__type(graph: EXPENSE_TRACKER) @join__type(graph: USER_SERVICE)
+
+  scalar TransportOptions @join__type(graph: EXPENSE_TRACKER) @join__type(graph: USER_SERVICE)
+
+  scalar _DirectiveExtensions @join__type(graph: EXPENSE_TRACKER) @join__type(graph: USER_SERVICE)
 
   scalar JSON @join__type(graph: USER_SERVICE)
 
-  scalar TransportOptions @join__type(graph: USER_SERVICE)
+  type GenericCategoryResponse @join__type(graph: EXPENSE_TRACKER) {
+    id: ID!
+    name: String!
+    category_type: CategoryType!
+    created_at: DateTime!
+    updated_at: DateTime!
+    created_by: String!
+    updated_by: String!
+    is_disabled: Boolean!
+  }
 
-  scalar _DirectiveExtensions @join__type(graph: USER_SERVICE)
+  type Category @join__type(graph: EXPENSE_TRACKER) {
+    id: ID!
+    name: String!
+    created_at: DateTime!
+    updated_at: DateTime!
+    created_by: String!
+    updated_by: String!
+  }
+
+  type CategorySuccessResponse @join__type(graph: EXPENSE_TRACKER) {
+    id: ID!
+    name: String!
+    category_type: CategoryType!
+  }
+
+  type CategoryResponse @join__type(graph: EXPENSE_TRACKER) {
+    success: Boolean!
+    category: CategorySuccessResponse
+  }
+
+  type ExpenseTracker @join__type(graph: EXPENSE_TRACKER, key: "id") {
+    id: ID!
+    user_id: String!
+    expense_period: String!
+    amount: Float!
+    description: String
+    item_details: String
+    tag: Category!
+    mode: Category!
+    fynix: Category!
+    status: ExpenseStatus!
+    created_at: DateTime!
+    updated_at: DateTime!
+    created_by: String!
+    updated_by: String!
+    is_disabled: Boolean!
+  }
+
+  type ExpenseTrackerSuccessResponse @join__type(graph: EXPENSE_TRACKER) {
+    id: ID!
+    user_id: String!
+    expense_period: String!
+    amount: Float!
+    description: String
+    item_details: String
+    tag: Category!
+    mode: Category!
+    fynix: Category!
+    status: ExpenseStatus!
+  }
+
+  type ExpenseTrackerEdge @join__type(graph: EXPENSE_TRACKER) {
+    node: ExpenseTracker!
+    cursor: String!
+  }
+
+  type PageInfo @join__type(graph: EXPENSE_TRACKER) @join__type(graph: USER_SERVICE) {
+    endCursor: String
+    hasNextPage: Boolean!
+  }
+
+  type ExpenseTrackerConnection @join__type(graph: EXPENSE_TRACKER) {
+    edges: [ExpenseTrackerEdge!]!
+    pageInfo: PageInfo!
+  }
+
+  type ExpenseTrackerResponse @join__type(graph: EXPENSE_TRACKER) {
+    success: Boolean!
+    expenseTracker: ExpenseTrackerSuccessResponse
+  }
+
+  type Query
+    @extraSchemaDefinitionDirective(
+      directives: {
+        transport: [
+          {
+            kind: "http"
+            subgraph: "ExpenseTracker"
+            location: "http://localhost:8502/graphql"
+            headers: [
+              ["Authorization", "{context.headers.Authorization}"]
+              ["X-Project-Token", "{context.headers.X-Project-Token}"]
+              ["X-Gateway-Nonce", "{context.gateway_nonce}"]
+              ["X-Gateway-Signature", "{context.gateway_signature}"]
+              ["X-Gateway-Timestamp", "{context.gateway_timestamp}"]
+              ["X-User-Id", "{context.current_session_user.id}"]
+              ["X-User-Role", "{context.current_session_user.role}"]
+              ["X-User-Email", "{context.current_session_user.email}"]
+              ["X-User-Name", "{context.current_session_user.name}"]
+            ]
+            options: { method: "POST", credentials: "include", retry: 3, timeout: 10000 }
+          }
+        ]
+      }
+    )
+    @extraSchemaDefinitionDirective(
+      directives: {
+        transport: [
+          {
+            kind: "http"
+            subgraph: "UserService"
+            location: "http://localhost:8501/graphql"
+            headers: [
+              ["Authorization", "{context.headers.Authorization}"]
+              ["X-Project-Token", "{context.headers.X-Project-Token}"]
+              ["X-Gateway-Nonce", "{context.gateway_nonce}"]
+              ["X-Gateway-Signature", "{context.gateway_signature}"]
+              ["X-Gateway-Timestamp", "{context.gateway_timestamp}"]
+              ["X-User-Id", "{context.current_session_user.id}"]
+              ["X-User-Role", "{context.current_session_user.role}"]
+              ["X-User-Email", "{context.current_session_user.email}"]
+              ["X-User-Name", "{context.current_session_user.name}"]
+            ]
+            options: { method: "POST", credentials: "include", retry: 3, timeout: 10000 }
+          }
+        ]
+      }
+    )
+    @join__type(graph: EXPENSE_TRACKER)
+    @join__type(graph: USER_SERVICE) {
+    expenseTags(input: CategoryFilter): [Category] @join__field(graph: EXPENSE_TRACKER)
+    expenseModes(input: CategoryFilter): [Category] @join__field(graph: EXPENSE_TRACKER)
+    expenseFynixes(input: CategoryFilter): [Category] @join__field(graph: EXPENSE_TRACKER)
+    expenseTrackerById(ids: ID!): ExpenseTracker
+      @merge(subgraph: "ExpenseTracker", keyField: "id", keyArg: "ids")
+      @join__field(graph: EXPENSE_TRACKER)
+    expenseTrackerByUserIds(user_id: [ID!]!): [ExpenseTracker]! @join__field(graph: EXPENSE_TRACKER)
+    paginatedExpenseTrackers(session_id: ID, input: PaginatedExpenseInputs): ExpenseTrackerConnection! @join__field(graph: EXPENSE_TRACKER)
+    userByEmail(input: UserByEmailInput!): UserResponse @join__field(graph: USER_SERVICE)
+    userByfield(input: UserByFieldInput!): [UserResponse] @join__field(graph: USER_SERVICE)
+    users: [UserResponse] @join__field(graph: USER_SERVICE)
+    paginatedUsers(ids: [ID!], input: PaginatedUsersInputs): UsersConnection @join__field(graph: USER_SERVICE)
+    adminKvAsset(input: AdminKvAssetInput!): AdminKvAsset @join__field(graph: USER_SERVICE)
+  }
+
+  type Mutation @join__type(graph: EXPENSE_TRACKER) @join__type(graph: USER_SERVICE) {
+    createCategory(input: CreateCategoryInput!): CategoryResponse! @join__field(graph: EXPENSE_TRACKER)
+    updateCategory(input: UpdateCategoryInput!): CategoryResponse! @join__field(graph: EXPENSE_TRACKER)
+    deleteCategory(input: DeleteCategoryInput!): Boolean! @join__field(graph: EXPENSE_TRACKER)
+    createExpenseTracker(input: CreateExpenseTrackerInput!): ExpenseTrackerResponse! @join__field(graph: EXPENSE_TRACKER)
+    updateExpenseTracker(input: UpdateExpenseTrackerInput!): ExpenseTrackerResponse! @join__field(graph: EXPENSE_TRACKER)
+    deleteExpenseTracker(id: ID!): Boolean! @join__field(graph: EXPENSE_TRACKER)
+    signUp(input: SignUpInput!): SignUpResponse! @public @join__field(graph: USER_SERVICE)
+    login(input: LoginInput!): LoginResponse! @public @join__field(graph: USER_SERVICE)
+    editUser(input: EditUserInput!): EditUserResponse! @join__field(graph: USER_SERVICE)
+    deleteUser(input: DeleteUserInput!): Boolean! @join__field(graph: USER_SERVICE)
+    changePassword(input: ChangePasswordInput!): Boolean! @join__field(graph: USER_SERVICE)
+    logout: LogoutResponse! @join__field(graph: USER_SERVICE)
+  }
 
   type User @join__type(graph: USER_SERVICE) {
     id: ID!
@@ -148,70 +322,36 @@ export const supergraphSdl = /* GraphQL */ `
     cursor: String!
   }
 
-  type PageInfo @join__type(graph: USER_SERVICE) {
-    endCursor: String
-    hasNextPage: Boolean!
-  }
-
   type UsersConnection @join__type(graph: USER_SERVICE) {
     edges: [UserEdge!]!
     pageInfo: PageInfo!
   }
 
-  type Query
-    @extraSchemaDefinitionDirective(
-      directives: {
-        transport: [
-          {
-            kind: "http"
-            subgraph: "UserService"
-            location: "http://localhost:8501/graphql"
-            headers: [
-              ["Authorization", "{context.headers.Authorization}"]
-              ["X-Project-Token", "{context.headers.X-Project-Token}"]
-              ["X-Gateway-Nonce", "{context.gateway_nonce}"]
-              ["X-Gateway-Signature", "{context.gateway_signature}"]
-              ["X-Gateway-Timestamp", "{context.gateway_timestamp}"]
-              ["X-User-Id", "{context.current_session_user.id}"]
-              ["X-User-Role", "{context.current_session_user.role}"]
-              ["X-User-Email", "{context.current_session_user.email}"]
-              ["X-User-Name", "{context.current_session_user.name}"]
-            ]
-            options: { method: "POST", credentials: "include", retry: 3, timeout: 10000 }
-          }
-        ]
-      }
-    )
-    @join__type(graph: USER_SERVICE) {
-    userByEmail(input: UserByEmailInput!): UserResponse
-    userByfield(input: UserByFieldInput!): [UserResponse]
-    users: [UserResponse]
-    paginatedUsers(ids: [ID!], input: PaginatedUsersInputs): UsersConnection
-    adminKvAsset(input: AdminKvAssetInput!): AdminKvAsset
+  enum ExpenseStatus @join__type(graph: EXPENSE_TRACKER) {
+    PAID @join__enumValue(graph: EXPENSE_TRACKER)
+    UNPAID @join__enumValue(graph: EXPENSE_TRACKER)
+    NEXTDUE @join__enumValue(graph: EXPENSE_TRACKER)
   }
 
-  type Mutation @join__type(graph: USER_SERVICE) {
-    signUp(input: SignUpInput!): SignUpResponse! @public
-    login(input: LoginInput!): LoginResponse! @public
-    editUser(input: EditUserInput!): EditUserResponse!
-    deleteUser(input: DeleteUserInput!): Boolean!
-    changePassword(input: ChangePasswordInput!): Boolean!
-    logout: LogoutResponse!
+  enum Sort @join__type(graph: EXPENSE_TRACKER) @join__type(graph: USER_SERVICE) {
+    ASC @join__enumValue(graph: EXPENSE_TRACKER) @join__enumValue(graph: USER_SERVICE)
+    DESC @join__enumValue(graph: EXPENSE_TRACKER) @join__enumValue(graph: USER_SERVICE)
+  }
+
+  enum SORT_BY @join__type(graph: EXPENSE_TRACKER) @join__type(graph: USER_SERVICE) {
+    CREATED_AT @join__enumValue(graph: EXPENSE_TRACKER) @join__enumValue(graph: USER_SERVICE)
+    UPDATED_AT @join__enumValue(graph: EXPENSE_TRACKER) @join__enumValue(graph: USER_SERVICE)
+  }
+
+  enum CategoryType @join__type(graph: EXPENSE_TRACKER) {
+    EXPENSE_TAG @join__enumValue(graph: EXPENSE_TRACKER)
+    EXPENSE_MODE @join__enumValue(graph: EXPENSE_TRACKER)
+    EXPENSE_FYNIX @join__enumValue(graph: EXPENSE_TRACKER)
   }
 
   enum Role @join__type(graph: USER_SERVICE) {
     ADMIN @join__enumValue(graph: USER_SERVICE)
     USER @join__enumValue(graph: USER_SERVICE)
-  }
-
-  enum Sort @join__type(graph: USER_SERVICE) {
-    ASC @join__enumValue(graph: USER_SERVICE)
-    DESC @join__enumValue(graph: USER_SERVICE)
-  }
-
-  enum SORT_BY @join__type(graph: USER_SERVICE) {
-    CREATED_AT @join__enumValue(graph: USER_SERVICE)
-    UPDATED_AT @join__enumValue(graph: USER_SERVICE)
   }
 
   enum ColumnName @join__type(graph: USER_SERVICE) {
@@ -225,6 +365,66 @@ export const supergraphSdl = /* GraphQL */ `
     state @join__enumValue(graph: USER_SERVICE)
     country @join__enumValue(graph: USER_SERVICE)
     zipcode @join__enumValue(graph: USER_SERVICE)
+  }
+
+  input CreateCategoryInput @join__type(graph: EXPENSE_TRACKER) {
+    category_type: CategoryType!
+    name: String!
+  }
+
+  input UpdateCategoryInput @join__type(graph: EXPENSE_TRACKER) {
+    id: ID!
+    category_type: CategoryType!
+    name: String!
+  }
+
+  input DeleteCategoryInput @join__type(graph: EXPENSE_TRACKER) {
+    id: ID!
+    category_type: CategoryType!
+  }
+
+  input CategoryFilter @join__type(graph: EXPENSE_TRACKER) {
+    id: ID
+    search: String
+  }
+
+  input CreateExpenseTrackerInput @join__type(graph: EXPENSE_TRACKER) {
+    user_id: ID!
+    expense_period: String!
+    amount: Float!
+    description: String
+    item_details: String
+    tag_id: ID!
+    mode_id: ID!
+    fynix_id: ID!
+    status: ExpenseStatus!
+  }
+
+  input UpdateExpenseTrackerInput @join__type(graph: EXPENSE_TRACKER) {
+    id: ID!
+    expense_period: String!
+    amount: Float!
+    description: String
+    item_details: String
+    tag_id: ID!
+    mode_id: ID!
+    fynix_id: ID!
+    status: ExpenseStatus!
+  }
+
+  input PaginatedExpenseInputs @join__type(graph: EXPENSE_TRACKER) {
+    user_ids: [ID]
+    expense_period: String
+    tag_id: [ID]
+    mode_id: [ID]
+    fynix_id: [ID]
+    min_amount: Float
+    max_amount: Float
+    statuses: [ExpenseStatus]
+    first: Int = 10
+    after: String
+    sort: Sort = DESC
+    sort_by: SORT_BY = CREATED_AT
   }
 
   input SignUpInput @join__type(graph: USER_SERVICE) {

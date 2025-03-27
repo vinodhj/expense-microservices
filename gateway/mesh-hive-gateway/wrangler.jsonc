@@ -16,6 +16,10 @@
       "binding": "USER_SERVICE_WORKER",
       "service": "user-hub",
     },
+    {
+      "binding": "EXPENSE_SERVICE_WORKER",
+      "service": "expense-tracker",
+    },
   ],
   "minify": true,
   "kv_namespaces": [

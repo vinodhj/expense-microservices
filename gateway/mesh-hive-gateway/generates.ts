@@ -32,6 +32,40 @@ export type AdminKvAssetInput = {
   kv_key: Scalars["String"]["input"];
 };
 
+export type Category = {
+  __typename?: "Category";
+  created_at: Scalars["DateTime"]["output"];
+  created_by: Scalars["String"]["output"];
+  id: Scalars["ID"]["output"];
+  name: Scalars["String"]["output"];
+  updated_at: Scalars["DateTime"]["output"];
+  updated_by: Scalars["String"]["output"];
+};
+
+export type CategoryFilter = {
+  id?: InputMaybe<Scalars["ID"]["input"]>;
+  search?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+export type CategoryResponse = {
+  __typename?: "CategoryResponse";
+  category?: Maybe<CategorySuccessResponse>;
+  success: Scalars["Boolean"]["output"];
+};
+
+export type CategorySuccessResponse = {
+  __typename?: "CategorySuccessResponse";
+  category_type: CategoryType;
+  id: Scalars["ID"]["output"];
+  name: Scalars["String"]["output"];
+};
+
+export enum CategoryType {
+  ExpenseFynix = "EXPENSE_FYNIX",
+  ExpenseMode = "EXPENSE_MODE",
+  ExpenseTag = "EXPENSE_TAG",
+}
+
 export type ChangePasswordInput = {
   confirm_password: Scalars["String"]["input"];
   current_password: Scalars["String"]["input"];
@@ -51,6 +85,28 @@ export enum ColumnName {
   State = "state",
   Zipcode = "zipcode",
 }
+
+export type CreateCategoryInput = {
+  category_type: CategoryType;
+  name: Scalars["String"]["input"];
+};
+
+export type CreateExpenseTrackerInput = {
+  amount: Scalars["Float"]["input"];
+  description?: InputMaybe<Scalars["String"]["input"]>;
+  expense_period: Scalars["String"]["input"];
+  fynix_id: Scalars["ID"]["input"];
+  item_details?: InputMaybe<Scalars["String"]["input"]>;
+  mode_id: Scalars["ID"]["input"];
+  status: ExpenseStatus;
+  tag_id: Scalars["ID"]["input"];
+  user_id: Scalars["ID"]["input"];
+};
+
+export type DeleteCategoryInput = {
+  category_type: CategoryType;
+  id: Scalars["ID"]["input"];
+};
 
 export type DeleteUserInput = {
   id: Scalars["ID"]["input"];
@@ -75,6 +131,75 @@ export type EditUserResponse = {
   user?: Maybe<UserSuccessResponse>;
 };
 
+export enum ExpenseStatus {
+  Nextdue = "NEXTDUE",
+  Paid = "PAID",
+  Unpaid = "UNPAID",
+}
+
+export type ExpenseTracker = {
+  __typename?: "ExpenseTracker";
+  amount: Scalars["Float"]["output"];
+  created_at: Scalars["DateTime"]["output"];
+  created_by: Scalars["String"]["output"];
+  description?: Maybe<Scalars["String"]["output"]>;
+  expense_period: Scalars["String"]["output"];
+  fynix: Category;
+  id: Scalars["ID"]["output"];
+  is_disabled: Scalars["Boolean"]["output"];
+  item_details?: Maybe<Scalars["String"]["output"]>;
+  mode: Category;
+  status: ExpenseStatus;
+  tag: Category;
+  updated_at: Scalars["DateTime"]["output"];
+  updated_by: Scalars["String"]["output"];
+  user_id: Scalars["String"]["output"];
+};
+
+export type ExpenseTrackerConnection = {
+  __typename?: "ExpenseTrackerConnection";
+  edges: Array<ExpenseTrackerEdge>;
+  pageInfo: PageInfo;
+};
+
+export type ExpenseTrackerEdge = {
+  __typename?: "ExpenseTrackerEdge";
+  cursor: Scalars["String"]["output"];
+  node: ExpenseTracker;
+};
+
+export type ExpenseTrackerResponse = {
+  __typename?: "ExpenseTrackerResponse";
+  expenseTracker?: Maybe<ExpenseTrackerSuccessResponse>;
+  success: Scalars["Boolean"]["output"];
+};
+
+export type ExpenseTrackerSuccessResponse = {
+  __typename?: "ExpenseTrackerSuccessResponse";
+  amount: Scalars["Float"]["output"];
+  description?: Maybe<Scalars["String"]["output"]>;
+  expense_period: Scalars["String"]["output"];
+  fynix: Category;
+  id: Scalars["ID"]["output"];
+  item_details?: Maybe<Scalars["String"]["output"]>;
+  mode: Category;
+  status: ExpenseStatus;
+  tag: Category;
+  user_id: Scalars["String"]["output"];
+};
+
+export type GenericCategoryResponse = {
+  __typename?: "GenericCategoryResponse";
+  category_type: CategoryType;
+  created_at: Scalars["DateTime"]["output"];
+  created_by: Scalars["String"]["output"];
+  id: Scalars["ID"]["output"];
+  is_disabled: Scalars["Boolean"]["output"];
+  name: Scalars["String"]["output"];
+  updated_at: Scalars["DateTime"]["output"];
+  updated_by: Scalars["String"]["output"];
+};
+
 export type LoginInput = {
   email: Scalars["String"]["input"];
   password: Scalars["String"]["input"];
@@ -95,15 +220,37 @@ export type LogoutResponse = {
 export type Mutation = {
   __typename?: "Mutation";
   changePassword: Scalars["Boolean"]["output"];
+  createCategory: CategoryResponse;
+  createExpenseTracker: ExpenseTrackerResponse;
+  deleteCategory: Scalars["Boolean"]["output"];
+  deleteExpenseTracker: Scalars["Boolean"]["output"];
   deleteUser: Scalars["Boolean"]["output"];
   editUser: EditUserResponse;
   login: LoginResponse;
   logout: LogoutResponse;
   signUp: SignUpResponse;
+  updateCategory: CategoryResponse;
+  updateExpenseTracker: ExpenseTrackerResponse;
 };
 
 export type MutationChangePasswordArgs = {
   input: ChangePasswordInput;
+};
+
+export type MutationCreateCategoryArgs = {
+  input: CreateCategoryInput;
+};
+
+export type MutationCreateExpenseTrackerArgs = {
+  input: CreateExpenseTrackerInput;
+};
+
+export type MutationDeleteCategoryArgs = {
+  input: DeleteCategoryInput;
+};
+
+export type MutationDeleteExpenseTrackerArgs = {
+  id: Scalars["ID"]["input"];
 };
 
 export type MutationDeleteUserArgs = {
@@ -122,10 +269,33 @@ export type MutationSignUpArgs = {
   input: SignUpInput;
 };
 
+export type MutationUpdateCategoryArgs = {
+  input: UpdateCategoryInput;
+};
+
+export type MutationUpdateExpenseTrackerArgs = {
+  input: UpdateExpenseTrackerInput;
+};
+
 export type PageInfo = {
   __typename?: "PageInfo";
   endCursor?: Maybe<Scalars["String"]["output"]>;
   hasNextPage: Scalars["Boolean"]["output"];
+};
+
+export type PaginatedExpenseInputs = {
+  after?: InputMaybe<Scalars["String"]["input"]>;
+  expense_period?: InputMaybe<Scalars["String"]["input"]>;
+  first?: InputMaybe<Scalars["Int"]["input"]>;
+  fynix_id?: InputMaybe<Array<InputMaybe<Scalars["ID"]["input"]>>>;
+  max_amount?: InputMaybe<Scalars["Float"]["input"]>;
+  min_amount?: InputMaybe<Scalars["Float"]["input"]>;
+  mode_id?: InputMaybe<Array<InputMaybe<Scalars["ID"]["input"]>>>;
+  sort?: InputMaybe<Sort>;
+  sort_by?: InputMaybe<Sort_By>;
+  statuses?: InputMaybe<Array<InputMaybe<ExpenseStatus>>>;
+  tag_id?: InputMaybe<Array<InputMaybe<Scalars["ID"]["input"]>>>;
+  user_ids?: InputMaybe<Array<InputMaybe<Scalars["ID"]["input"]>>>;
 };
 
 export type PaginatedUsersInputs = {
@@ -138,6 +308,12 @@ export type PaginatedUsersInputs = {
 export type Query = {
   __typename?: "Query";
   adminKvAsset?: Maybe<AdminKvAsset>;
+  expenseFynixes?: Maybe<Array<Maybe<Category>>>;
+  expenseModes?: Maybe<Array<Maybe<Category>>>;
+  expenseTags?: Maybe<Array<Maybe<Category>>>;
+  expenseTrackerById?: Maybe<ExpenseTracker>;
+  expenseTrackerByUserIds: Array<Maybe<ExpenseTracker>>;
+  paginatedExpenseTrackers: ExpenseTrackerConnection;
   paginatedUsers?: Maybe<UsersConnection>;
   userByEmail?: Maybe<UserResponse>;
   userByfield?: Maybe<Array<Maybe<UserResponse>>>;
@@ -146,6 +322,31 @@ export type Query = {
 
 export type QueryAdminKvAssetArgs = {
   input: AdminKvAssetInput;
+};
+
+export type QueryExpenseFynixesArgs = {
+  input?: InputMaybe<CategoryFilter>;
+};
+
+export type QueryExpenseModesArgs = {
+  input?: InputMaybe<CategoryFilter>;
+};
+
+export type QueryExpenseTagsArgs = {
+  input?: InputMaybe<CategoryFilter>;
+};
+
+export type QueryExpenseTrackerByIdArgs = {
+  ids: Scalars["ID"]["input"];
+};
+
+export type QueryExpenseTrackerByUserIdsArgs = {
+  user_id: Array<Scalars["ID"]["input"]>;
+};
+
+export type QueryPaginatedExpenseTrackersArgs = {
+  input?: InputMaybe<PaginatedExpenseInputs>;
+  session_id?: InputMaybe<Scalars["ID"]["input"]>;
 };
 
 export type QueryPaginatedUsersArgs = {
@@ -194,6 +395,24 @@ export enum Sort {
   Asc = "ASC",
   Desc = "DESC",
 }
+
+export type UpdateCategoryInput = {
+  category_type: CategoryType;
+  id: Scalars["ID"]["input"];
+  name: Scalars["String"]["input"];
+};
+
+export type UpdateExpenseTrackerInput = {
+  amount: Scalars["Float"]["input"];
+  description?: InputMaybe<Scalars["String"]["input"]>;
+  expense_period: Scalars["String"]["input"];
+  fynix_id: Scalars["ID"]["input"];
+  id: Scalars["ID"]["input"];
+  item_details?: InputMaybe<Scalars["String"]["input"]>;
+  mode_id: Scalars["ID"]["input"];
+  status: ExpenseStatus;
+  tag_id: Scalars["ID"]["input"];
+};
 
 export type User = {
   __typename?: "User";
@@ -268,6 +487,7 @@ export type UsersConnection = {
 };
 
 export enum Join__Graph {
+  ExpenseTracker = "EXPENSE_TRACKER",
   UserService = "USER_SERVICE",
 }
 
