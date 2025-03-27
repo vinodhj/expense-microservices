@@ -1,4 +1,4 @@
-// import { Resolvers } from "generated";
+import { Resolvers } from "generated";
 import { CategoryMutation } from "./category/mutations";
 import { CategoryQuery } from "./category/queries";
 import { ExpenseMutation } from "./expense/mutations";
@@ -13,4 +13,4 @@ const Mutation = {
   ...ExpenseMutation,
 };
 
-export const resolvers = { Query, Mutation };
+export const resolvers: Resolvers = { Query, Mutation };
