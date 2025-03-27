@@ -10,10 +10,21 @@
 
 export const createServiceRouter = (env: Env) => {
   return (url: string, options?: RequestInit) => {
+    console.log("URL", url);
+    console.log("env.USER_SERVICE_URL", env.USER_SERVICE_URL);
+    console.log("env.USER_SERVICE_WORKER", env.USER_SERVICE_WORKER);
+    console.log("env.EXPENSE_TRACKER_URL", env.EXPENSE_TRACKER_URL);
+    console.log("env.EXPENSE_TRACKER_WORKER", env.EXPENSE_TRACKER_WORKER);
+
     // Determine which service to call based on the URL
     if (url.includes(env.USER_SERVICE_URL)) {
       return env.USER_SERVICE_WORKER.fetch(url, options);
     }
+
+    if (url.includes(env.EXPENSE_TRACKER_URL)) {
+      return env.EXPENSE_TRACKER_WORKER.fetch(url, options);
+    }
+
     // You could add more service routing conditions here
 
     // Fallback to default fetch if no match
