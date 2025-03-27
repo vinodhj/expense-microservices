@@ -10,7 +10,7 @@
     "deploy:staging": "wrangler deploy --env staging",
     "bundle-size": "wrangler build && wrangler deploy --dry-run",
     "deploy": "wrangler deploy",
-    "dev": "(kill -9 $(lsof -t -i:8502) || true) && wrangler dev --name user-hub --port 8502 --inspector-port 8302 --persist-to=.db-local",
+    "dev": "(kill -9 $(lsof -t -i:8502) || true) && wrangler dev --name expense-tracker --port 8502 --inspector-port 8302 --persist-to=.db-local",
     "test": "vitest",
     "cf-typegen": "wrangler types",
     "prod:secrets": "./wrangler-secrets.sh"
