@@ -5,9 +5,9 @@ export const typeDefs = gql`
 
   # Expense Status Enum
   enum ExpenseStatus {
-    PAID
-    UNPAID
-    NEXTDUE
+    Paid
+    UnPaid
+    NextDue
   }
 
   # Sorting and Pagination Enums
@@ -110,10 +110,14 @@ export const typeDefs = gql`
     amount: Float!
     description: String
     item_details: String
-    tag: Category!
-    mode: Category!
-    fynix: Category!
     status: ExpenseStatus!
+    tag_id: ID!
+    mode_id: ID!
+    fynix_id: ID!
+    created_at: DateTime!
+    updated_at: DateTime!
+    created_by: String!
+    updated_by: String!
   }
 
   # Edge and Connection Types for Pagination
@@ -162,6 +166,11 @@ export const typeDefs = gql`
     status: ExpenseStatus!
   }
 
+  input DeleteExpenseTrackerInput {
+    id: ID!
+    user_id: ID!
+  }
+
   # Paginated Inputs
   input PaginatedExpenseInputs {
     user_ids: [ID] # User filtering (for admin)
@@ -206,6 +215,6 @@ export const typeDefs = gql`
     # Expense Tracker Mutations
     createExpenseTracker(input: CreateExpenseTrackerInput!): ExpenseTrackerResponse!
     updateExpenseTracker(input: UpdateExpenseTrackerInput!): ExpenseTrackerResponse!
-    deleteExpenseTracker(id: ID!): Boolean!
+    deleteExpenseTracker(input: DeleteExpenseTrackerInput!): Boolean!
   }
 `;

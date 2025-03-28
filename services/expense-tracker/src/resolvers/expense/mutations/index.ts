@@ -1,1 +1,5 @@
-export const ExpenseMutation = {};
+import { createExpenseTracker } from "./create";
+
+export const ExpenseMutation = {
+  createExpenseTracker,
+};

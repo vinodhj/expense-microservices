@@ -75,10 +75,15 @@ export type DeleteCategoryInput = {
   id: Scalars["ID"]["input"];
 };
 
+export type DeleteExpenseTrackerInput = {
+  id: Scalars["ID"]["input"];
+  user_id: Scalars["ID"]["input"];
+};
+
 export enum ExpenseStatus {
-  Nextdue = "NEXTDUE",
-  Paid = "PAID",
-  Unpaid = "UNPAID",
+  NextDue = "NextDue",
+  Paid = "Paid",
+  UnPaid = "UnPaid",
 }
 
 export type ExpenseTracker = {
@@ -121,14 +126,18 @@ export type ExpenseTrackerResponse = {
 export type ExpenseTrackerSuccessResponse = {
   __typename?: "ExpenseTrackerSuccessResponse";
   amount: Scalars["Float"]["output"];
+  created_at: Scalars["DateTime"]["output"];
+  created_by: Scalars["String"]["output"];
   description?: Maybe<Scalars["String"]["output"]>;
   expense_period: Scalars["String"]["output"];
-  fynix: Category;
+  fynix_id: Scalars["ID"]["output"];
   id: Scalars["ID"]["output"];
   item_details?: Maybe<Scalars["String"]["output"]>;
-  mode: Category;
+  mode_id: Scalars["ID"]["output"];
   status: ExpenseStatus;
-  tag: Category;
+  tag_id: Scalars["ID"]["output"];
+  updated_at: Scalars["DateTime"]["output"];
+  updated_by: Scalars["String"]["output"];
   user_id: Scalars["String"]["output"];
 };
 
@@ -167,7 +176,7 @@ export type MutationDeleteCategoryArgs = {
 };
 
 export type MutationDeleteExpenseTrackerArgs = {
-  id: Scalars["ID"]["input"];
+  input: DeleteExpenseTrackerInput;
 };
 
 export type MutationUpdateCategoryArgs = {
@@ -347,6 +356,7 @@ export type ResolversTypes = {
   CreateExpenseTrackerInput: CreateExpenseTrackerInput;
   DateTime: ResolverTypeWrapper<Scalars["DateTime"]["output"]>;
   DeleteCategoryInput: DeleteCategoryInput;
+  DeleteExpenseTrackerInput: DeleteExpenseTrackerInput;
   ExpenseStatus: ExpenseStatus;
   ExpenseTracker: ResolverTypeWrapper<ExpenseTracker>;
   ExpenseTrackerConnection: ResolverTypeWrapper<ExpenseTrackerConnection>;
@@ -382,6 +392,7 @@ export type ResolversParentTypes = {
   CreateExpenseTrackerInput: CreateExpenseTrackerInput;
   DateTime: Scalars["DateTime"]["output"];
   DeleteCategoryInput: DeleteCategoryInput;
+  DeleteExpenseTrackerInput: DeleteExpenseTrackerInput;
   ExpenseTracker: ExpenseTracker;
   ExpenseTrackerConnection: ExpenseTrackerConnection;
   ExpenseTrackerEdge: ExpenseTrackerEdge;
@@ -555,14 +566,18 @@ export type ExpenseTrackerSuccessResponseResolvers<
   ParentType extends ResolversParentTypes["ExpenseTrackerSuccessResponse"] = ResolversParentTypes["ExpenseTrackerSuccessResponse"],
 > = {
   amount?: Resolver<ResolversTypes["Float"], ParentType, ContextType>;
+  created_at?: Resolver<ResolversTypes["DateTime"], ParentType, ContextType>;
+  created_by?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   expense_period?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
-  fynix?: Resolver<ResolversTypes["Category"], ParentType, ContextType>;
+  fynix_id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
   id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
   item_details?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
-  mode?: Resolver<ResolversTypes["Category"], ParentType, ContextType>;
+  mode_id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
   status?: Resolver<ResolversTypes["ExpenseStatus"], ParentType, ContextType>;
-  tag?: Resolver<ResolversTypes["Category"], ParentType, ContextType>;
+  tag_id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
+  updated_at?: Resolver<ResolversTypes["DateTime"], ParentType, ContextType>;
+  updated_by?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   user_id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -600,7 +615,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
     ResolversTypes["Boolean"],
     ParentType,
     ContextType,
-    RequireFields<MutationDeleteExpenseTrackerArgs, "id">
+    RequireFields<MutationDeleteExpenseTrackerArgs, "input">
   >;
   updateCategory?: Resolver<
     ResolversTypes["CategoryResponse"],

@@ -4,9 +4,9 @@ import { expenseModes } from "./modes";
 import { expenseFynix } from "./fynix";
 
 export enum expenseStatusType {
-  PAID = "PAID",
-  UNPAID = "UNPAID",
-  NEXTDUE = "NEXTDUE",
+  Paid = "Paid",
+  UnPaid = "UnPaid",
+  NextDue = "NextDue",
 }
 
 export const expenseTracker = sqliteTable(
@@ -14,7 +14,7 @@ export const expenseTracker = sqliteTable(
   {
     id: text("id").primaryKey(),
     user_id: text("user_id").notNull(),
-    expense_period: text("expense_period").notNull(),
+    expense_period: text("expense_period").notNull().$type<`${number}-${number}`>(),
     amount: real("amount").notNull().$type<number>(),
     description: text("description"),
     item_details: text("item_details"),
@@ -27,7 +27,7 @@ export const expenseTracker = sqliteTable(
     fynix_id: text("fynix_id")
       .notNull()
       .references(() => expenseFynix.id, { onUpdate: "restrict", onDelete: "restrict" }),
-    status: text("status", { enum: ["PAID", "UNPAID", "NEXTDUE"] })
+    status: text("status", { enum: ["Paid", "UnPaid", "NextDue"] })
       .notNull()
       .$type<expenseStatusType>(),
     created_at: integer("created_at", { mode: "timestamp_ms" })

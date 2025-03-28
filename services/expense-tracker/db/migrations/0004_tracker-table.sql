@@ -8,7 +8,7 @@ CREATE TABLE `expense_tracker` (
     `tag_id` TEXT NOT NULL,
     `mode_id` TEXT NOT NULL,
     `fynix_id` TEXT NOT NULL,
-    `status` TEXT CHECK(status IN ('PAID', 'UNPAID', 'NEXTDUE')),
+    `status` TEXT NOT NULL,
     `created_at` integer NOT NULL,
     `updated_at` integer NOT NULL,
     `created_by` text NOT NULL,

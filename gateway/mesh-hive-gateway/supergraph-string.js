@@ -139,10 +139,14 @@ export const supergraphSdl = /* GraphQL */ `
     amount: Float!
     description: String
     item_details: String
-    tag: Category!
-    mode: Category!
-    fynix: Category!
     status: ExpenseStatus!
+    tag_id: ID!
+    mode_id: ID!
+    fynix_id: ID!
+    created_at: DateTime!
+    updated_at: DateTime!
+    created_by: String!
+    updated_by: String!
   }
 
   type ExpenseTrackerEdge @join__type(graph: EXPENSE_TRACKER) {
@@ -235,7 +239,7 @@ export const supergraphSdl = /* GraphQL */ `
     deleteCategory(input: DeleteCategoryInput!): Boolean! @join__field(graph: EXPENSE_TRACKER)
     createExpenseTracker(input: CreateExpenseTrackerInput!): ExpenseTrackerResponse! @join__field(graph: EXPENSE_TRACKER)
     updateExpenseTracker(input: UpdateExpenseTrackerInput!): ExpenseTrackerResponse! @join__field(graph: EXPENSE_TRACKER)
-    deleteExpenseTracker(id: ID!): Boolean! @join__field(graph: EXPENSE_TRACKER)
+    deleteExpenseTracker(input: DeleteExpenseTrackerInput!): Boolean! @join__field(graph: EXPENSE_TRACKER)
     signUp(input: SignUpInput!): SignUpResponse! @public @join__field(graph: USER_SERVICE)
     login(input: LoginInput!): LoginResponse! @public @join__field(graph: USER_SERVICE)
     editUser(input: EditUserInput!): EditUserResponse! @join__field(graph: USER_SERVICE)
@@ -328,9 +332,9 @@ export const supergraphSdl = /* GraphQL */ `
   }
 
   enum ExpenseStatus @join__type(graph: EXPENSE_TRACKER) {
-    PAID @join__enumValue(graph: EXPENSE_TRACKER)
-    UNPAID @join__enumValue(graph: EXPENSE_TRACKER)
-    NEXTDUE @join__enumValue(graph: EXPENSE_TRACKER)
+    Paid @join__enumValue(graph: EXPENSE_TRACKER)
+    UnPaid @join__enumValue(graph: EXPENSE_TRACKER)
+    NextDue @join__enumValue(graph: EXPENSE_TRACKER)
   }
 
   enum Sort @join__type(graph: EXPENSE_TRACKER) @join__type(graph: USER_SERVICE) {
@@ -410,6 +414,11 @@ export const supergraphSdl = /* GraphQL */ `
     mode_id: ID!
     fynix_id: ID!
     status: ExpenseStatus!
+  }
+
+  input DeleteExpenseTrackerInput @join__type(graph: EXPENSE_TRACKER) {
+    id: ID!
+    user_id: ID!
   }
 
   input PaginatedExpenseInputs @join__type(graph: EXPENSE_TRACKER) {
