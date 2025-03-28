@@ -33,20 +33,31 @@ export class ExpenseDataSource {
     NextDue: expenseStatusType.NextDue,
   };
 
-  private static getExpenseStatusFromType(status: expenseStatusType): ExpenseStatus {
-    switch (status) {
-      case expenseStatusType.Paid:
-        return ExpenseStatus.Paid;
-      case expenseStatusType.UnPaid:
-        return ExpenseStatus.UnPaid;
-      case expenseStatusType.NextDue:
-        return ExpenseStatus.NextDue;
-    }
-  }
+  async expenseTrackerById(id: string) {
+    try {
+      const result = await this.db.select().from(expenseTracker).where(eq(expenseTracker.id, id)).get();
 
-  private isValidExpensePeriod(period: string): period is `${number}-${number}` {
-    const regex = /^\d{4}-\d{2}$/;
-    return regex.test(period);
+      if (!result) {
+        throw new GraphQLError(`Expense with id ${id} not found`, {
+          extensions: {
+            code: "NOT_FOUND",
+          },
+        });
+      }
+      const transformedResult = {
+        ...result,
+        status: ExpenseDataSource.getExpenseStatusFromType(result.status),
+      };
+      return transformedResult;
+    } catch (error: any) {
+      console.error("Unexpected error:", error);
+      throw new GraphQLError("Failed to get expense by id", {
+        extensions: {
+          code: "INTERNAL_SERVER_ERROR",
+          error: error.message ? error.message : error,
+        },
+      });
+    }
   }
 
   async createExpenseTracker(input: CreateExpenseTrackerInput): Promise<ExpenseTrackerResponse> {
@@ -208,5 +219,21 @@ export class ExpenseDataSource {
         },
       });
     }
+  }
+
+  private static getExpenseStatusFromType(status: expenseStatusType): ExpenseStatus {
+    switch (status) {
+      case expenseStatusType.Paid:
+        return ExpenseStatus.Paid;
+      case expenseStatusType.UnPaid:
+        return ExpenseStatus.UnPaid;
+      case expenseStatusType.NextDue:
+        return ExpenseStatus.NextDue;
+    }
+  }
+
+  private isValidExpensePeriod(period: string): period is `${number}-${number}` {
+    const regex = /^\d{4}-\d{2}$/;
+    return regex.test(period);
   }
 }

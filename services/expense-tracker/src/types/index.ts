@@ -92,6 +92,9 @@ export const typeDefs = gql`
     amount: Float!
     description: String
     item_details: String
+    tag_id: ID!
+    mode_id: ID!
+    fynix_id: ID!
     tag: Category!
     mode: Category!
     fynix: Category!
@@ -201,7 +204,7 @@ export const typeDefs = gql`
     expenseFynixes(input: CategoryFilter): [Category]
 
     # Expense Tracker Queries
-    expenseTrackerById(ids: ID!): ExpenseTracker
+    expenseTrackerById(session_id: ID!, id: ID!): ExpenseTracker
     expenseTrackerByUserIds(user_id: [ID!]!): [ExpenseTracker]!
     paginatedExpenseTrackers(session_id: ID, input: PaginatedExpenseInputs): ExpenseTrackerConnection!
   }

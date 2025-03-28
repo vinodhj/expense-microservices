@@ -1,6 +1,13 @@
 import { ExpenseDataSource } from "@src/datasources/expense-datasources";
 import { SessionUserType } from ".";
-import { CreateExpenseTrackerInput, DeleteExpenseTrackerInput, ExpenseTrackerResponse, UpdateExpenseTrackerInput } from "generated";
+import {
+  CreateExpenseTrackerInput,
+  DeleteExpenseTrackerInput,
+  ExpenseTracker,
+  ExpenseTrackerResponse,
+  QueryExpenseTrackerByIdArgs,
+  UpdateExpenseTrackerInput,
+} from "generated";
 import { trackerAccessValidators, trackerInputValidators } from "./helper/tracker-access-validators";
 import { GraphQLError } from "graphql";
 
@@ -11,6 +18,26 @@ export class ExpenseServiceAPI {
   constructor({ expenseDataSource, sessionUser }: { expenseDataSource: ExpenseDataSource; sessionUser: SessionUserType }) {
     this.expenseDataSource = expenseDataSource;
     this.sessionUser = sessionUser;
+  }
+
+  async expenseTrackerById(args: QueryExpenseTrackerByIdArgs) {
+    try {
+      trackerAccessValidators({ sessionUser: this.sessionUser, target: { user_id: args.session_id } });
+      return await this.expenseDataSource.expenseTrackerById(args.id);
+    } catch (error) {
+      // Handle errors here
+      if (error instanceof GraphQLError) {
+        // Re-throw GraphQL-specific errors
+        throw error;
+      }
+      console.error("Unexpected error:", error);
+      throw new GraphQLError("Failed to create expense", {
+        extensions: {
+          code: "INTERNAL_SERVER_ERROR",
+          error,
+        },
+      });
+    }
   }
 
   async createExpenseTracker(input: CreateExpenseTrackerInput): Promise<ExpenseTrackerResponse> {
