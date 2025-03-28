@@ -3,7 +3,13 @@ import { SessionUserType } from "@src/services";
 import { GraphQLError } from "graphql";
 import { nanoid } from "nanoid";
 import { expenseStatusType, expenseTracker } from "db/schema/tracker";
-import { CreateExpenseTrackerInput, ExpenseStatus, ExpenseTrackerResponse, UpdateExpenseTrackerInput } from "generated";
+import {
+  CreateExpenseTrackerInput,
+  DeleteExpenseTrackerInput,
+  ExpenseStatus,
+  ExpenseTrackerResponse,
+  UpdateExpenseTrackerInput,
+} from "generated";
 import { eq } from "drizzle-orm";
 
 export class ExpenseDataSource {
@@ -156,6 +162,46 @@ export class ExpenseDataSource {
         });
       }
       throw new GraphQLError("Failed to update expense due to an unexpected error", {
+        extensions: {
+          code: "INTERNAL_SERVER_ERROR",
+          error,
+        },
+      });
+    }
+  }
+
+  async deleteExpenseTracker(input: DeleteExpenseTrackerInput): Promise<boolean> {
+    try {
+      const { id } = input;
+
+      const updateData = {
+        is_disabled: true,
+        created_by: this.sessionUser.name,
+        updated_by: this.sessionUser.name,
+      };
+
+      const result = await this.db.update(expenseTracker).set(updateData).where(eq(expenseTracker.id, id)).returning().get();
+
+      if (!result) {
+        throw new GraphQLError(`Expense with id ${id} not found`, {
+          extensions: {
+            code: "NOT_FOUND",
+          },
+        });
+      }
+      return true;
+    } catch (error) {
+      console.log("error", error);
+      if (error instanceof GraphQLError || error instanceof Error) {
+        //to throw GraphQLError/original error
+        throw new GraphQLError(`Failed to delete expense: ${error.message ? "- " + error.message : ""}`, {
+          extensions: {
+            code: "INTERNAL_SERVER_ERROR",
+            error: error.message,
+          },
+        });
+      }
+      throw new GraphQLError("Failed to delete expense due to an unexpected error", {
         extensions: {
           code: "INTERNAL_SERVER_ERROR",
           error,
