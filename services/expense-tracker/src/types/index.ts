@@ -156,6 +156,7 @@ export const typeDefs = gql`
 
   input UpdateExpenseTrackerInput {
     id: ID!
+    user_id: ID!
     expense_period: String!
     amount: Float!
     description: String

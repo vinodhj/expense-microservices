@@ -388,6 +388,7 @@ input CreateExpenseTrackerInput @join__type(graph: EXPENSE_TRACKER)  {
 
 input UpdateExpenseTrackerInput @join__type(graph: EXPENSE_TRACKER)  {
   id: ID!
+  user_id: ID!
   expense_period: String!
   amount: Float!
   description: String

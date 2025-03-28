@@ -406,6 +406,7 @@ export const supergraphSdl = /* GraphQL */ `
 
   input UpdateExpenseTrackerInput @join__type(graph: EXPENSE_TRACKER) {
     id: ID!
+    user_id: ID!
     expense_period: String!
     amount: Float!
     description: String

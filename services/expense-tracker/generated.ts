@@ -271,6 +271,7 @@ export type UpdateExpenseTrackerInput = {
   mode_id: Scalars["ID"]["input"];
   status: ExpenseStatus;
   tag_id: Scalars["ID"]["input"];
+  user_id: Scalars["ID"]["input"];
 };
 
 export type _Service = {
