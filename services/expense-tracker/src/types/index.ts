@@ -92,6 +92,9 @@ export const typeDefs = gql`
     amount: Float!
     description: String
     item_details: String
+    tag_id: ID!
+    mode_id: ID!
+    fynix_id: ID!
     tag: Category!
     mode: Category!
     fynix: Category!
@@ -176,9 +179,9 @@ export const typeDefs = gql`
   input PaginatedExpenseInputs {
     user_ids: [ID] # User filtering (for admin)
     expense_period: String
-    tag_id: [ID]
-    mode_id: [ID]
-    fynix_id: [ID]
+    tag_ids: [ID]
+    mode_ids: [ID]
+    fynix_ids: [ID]
 
     # Amount range filtering
     min_amount: Float
@@ -201,9 +204,9 @@ export const typeDefs = gql`
     expenseFynixes(input: CategoryFilter): [Category]
 
     # Expense Tracker Queries
-    expenseTrackerById(ids: ID!): ExpenseTracker
-    expenseTrackerByUserIds(user_id: [ID!]!): [ExpenseTracker]!
-    paginatedExpenseTrackers(session_id: ID, input: PaginatedExpenseInputs): ExpenseTrackerConnection!
+    expenseTrackerById(session_id: ID!, id: ID!): ExpenseTracker
+    expenseTrackerByUserIds(session_id: ID!, user_ids: [ID!]!): [ExpenseTracker]!
+    paginatedExpenseTrackers(session_id: ID!, input: PaginatedExpenseInputs): ExpenseTrackerConnection!
   }
 
   # Mutation Types
