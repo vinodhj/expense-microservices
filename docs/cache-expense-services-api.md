@@ -1,4 +1,4 @@
-# Expense Service Documentation
+# Cache Implementation - Expense Service API - Documentation (Expense Tracker)
 
 ## Overview
 
@@ -166,10 +166,8 @@ flowchart TD
 
 ## Future Improvements
 
-1. **Scheduled Cache Cleanup**: Implement a periodic job to execute `cleanupExpired()` to ensure memory efficiency.
+1. **Cache Size Limits**: Add maximum size constraints to prevent unbounded memory growth.
 
-2. **Cache Size Limits**: Add maximum size constraints to prevent unbounded memory growth.
+2. **Cache Metrics**: Implement monitoring for cache hit/miss rates and performance statistics.
 
-3. **Cache Metrics**: Implement monitoring for cache hit/miss rates and performance statistics.
-
-4. **Type Safety**: Enhance type definitions for improved type checking of cached values.
+3. **Type Safety**: Enhance type definitions for improved type checking of cached values.
