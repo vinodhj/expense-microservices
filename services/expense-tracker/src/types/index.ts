@@ -179,9 +179,9 @@ export const typeDefs = gql`
   input PaginatedExpenseInputs {
     user_ids: [ID] # User filtering (for admin)
     expense_period: String
-    tag_id: [ID]
-    mode_id: [ID]
-    fynix_id: [ID]
+    tag_ids: [ID]
+    mode_ids: [ID]
+    fynix_ids: [ID]
 
     # Amount range filtering
     min_amount: Float

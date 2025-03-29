@@ -200,14 +200,14 @@ export type PaginatedExpenseInputs = {
   after?: InputMaybe<Scalars["String"]["input"]>;
   expense_period?: InputMaybe<Scalars["String"]["input"]>;
   first?: InputMaybe<Scalars["Int"]["input"]>;
-  fynix_id?: InputMaybe<Array<InputMaybe<Scalars["ID"]["input"]>>>;
+  fynix_ids?: InputMaybe<Array<InputMaybe<Scalars["ID"]["input"]>>>;
   max_amount?: InputMaybe<Scalars["Float"]["input"]>;
   min_amount?: InputMaybe<Scalars["Float"]["input"]>;
-  mode_id?: InputMaybe<Array<InputMaybe<Scalars["ID"]["input"]>>>;
+  mode_ids?: InputMaybe<Array<InputMaybe<Scalars["ID"]["input"]>>>;
   sort?: InputMaybe<Sort>;
   sort_by?: InputMaybe<Sort_By>;
   statuses?: InputMaybe<Array<InputMaybe<ExpenseStatus>>>;
-  tag_id?: InputMaybe<Array<InputMaybe<Scalars["ID"]["input"]>>>;
+  tag_ids?: InputMaybe<Array<InputMaybe<Scalars["ID"]["input"]>>>;
   user_ids?: InputMaybe<Array<InputMaybe<Scalars["ID"]["input"]>>>;
 };
 
