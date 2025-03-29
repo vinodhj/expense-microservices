@@ -32,6 +32,12 @@
       "migrations_dir": "./db/migrations",
     },
   ],
+  "triggers": {
+    "crons": [
+      "0 */6 * * *", // Cache cleanup - expired - every 6 hours
+      "0 1 * * *", // Cache cleanup - all - midnight 1 AM
+    ],
+  },
   /**
    * Smart Placement
    * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
