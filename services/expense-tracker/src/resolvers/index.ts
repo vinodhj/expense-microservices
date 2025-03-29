@@ -17,5 +17,6 @@ const Mutation = {
 export const resolvers: Resolvers = {
   Query,
   Mutation,
+  // Nested resolvers
   ExpenseTracker: ExpenseTrackerNestedResolvers,
 };

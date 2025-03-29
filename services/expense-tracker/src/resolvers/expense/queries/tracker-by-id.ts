@@ -8,11 +8,7 @@ export const expenseTrackerById = async (
   { apis: { expenseAPI } }: { apis: APIs },
 ): Promise<ExpenseTracker> => {
   try {
-    /**
-     * The type assertion as ExpenseTracker tells TypeScript to treat the object as the correct type,
-     * while the nested resolvers will actually populate these fields in the returned object.
-     */
-    return (await expenseAPI.expenseTrackerById(args)) as ExpenseTracker;
+    return await expenseAPI.expenseTrackerById(args);
   } catch (error) {
     if (error instanceof GraphQLError) {
       // Re-throw GraphQL-specific errors

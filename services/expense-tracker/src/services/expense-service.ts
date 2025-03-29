@@ -20,10 +20,14 @@ export class ExpenseServiceAPI {
     this.sessionUser = sessionUser;
   }
 
-  async expenseTrackerById(args: QueryExpenseTrackerByIdArgs) {
+  async expenseTrackerById(args: QueryExpenseTrackerByIdArgs): Promise<ExpenseTracker> {
     try {
       trackerAccessValidators({ sessionUser: this.sessionUser, target: { user_id: args.session_id } });
-      return await this.expenseDataSource.expenseTrackerById(args.id);
+      /**
+       * The type assertion as ExpenseTracker tells TypeScript to treat the object as the correct type,
+       * while the nested resolvers will actually populate these fields(tags, modes & fynix) in the returned object.
+       */
+      return (await this.expenseDataSource.expenseTrackerById(args.id)) as ExpenseTracker;
     } catch (error) {
       // Handle errors here
       if (error instanceof GraphQLError) {
