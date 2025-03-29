@@ -205,8 +205,8 @@ export const typeDefs = gql`
 
     # Expense Tracker Queries
     expenseTrackerById(session_id: ID!, id: ID!): ExpenseTracker
-    expenseTrackerByUserIds(user_id: [ID!]!): [ExpenseTracker]!
-    paginatedExpenseTrackers(session_id: ID, input: PaginatedExpenseInputs): ExpenseTrackerConnection!
+    expenseTrackerByUserIds(session_id: ID!, user_ids: [ID!]!): [ExpenseTracker]!
+    paginatedExpenseTrackers(session_id: ID!, input: PaginatedExpenseInputs): ExpenseTrackerConnection!
   }
 
   # Mutation Types

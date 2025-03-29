@@ -93,15 +93,15 @@ export type ExpenseTracker = {
   created_by: Scalars["String"]["output"];
   description?: Maybe<Scalars["String"]["output"]>;
   expense_period: Scalars["String"]["output"];
-  fynix?: Maybe<Category>;
+  fynix: Category;
   fynix_id: Scalars["ID"]["output"];
   id: Scalars["ID"]["output"];
   is_disabled: Scalars["Boolean"]["output"];
   item_details?: Maybe<Scalars["String"]["output"]>;
-  mode?: Maybe<Category>;
+  mode: Category;
   mode_id: Scalars["ID"]["output"];
   status: ExpenseStatus;
-  tag?: Maybe<Category>;
+  tag: Category;
   tag_id: Scalars["ID"]["output"];
   updated_at: Scalars["DateTime"]["output"];
   updated_by: Scalars["String"]["output"];
@@ -240,12 +240,13 @@ export type QueryExpenseTrackerByIdArgs = {
 };
 
 export type QueryExpenseTrackerByUserIdsArgs = {
-  user_id: Array<Scalars["ID"]["input"]>;
+  session_id: Scalars["ID"]["input"];
+  user_ids: Array<Scalars["ID"]["input"]>;
 };
 
 export type QueryPaginatedExpenseTrackersArgs = {
   input?: InputMaybe<PaginatedExpenseInputs>;
-  session_id?: InputMaybe<Scalars["ID"]["input"]>;
+  session_id: Scalars["ID"]["input"];
 };
 
 export enum Sort_By {
@@ -526,15 +527,15 @@ export type ExpenseTrackerResolvers<
   created_by?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   expense_period?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
-  fynix?: Resolver<Maybe<ResolversTypes["Category"]>, ParentType, ContextType>;
+  fynix?: Resolver<ResolversTypes["Category"], ParentType, ContextType>;
   fynix_id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
   id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
   is_disabled?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   item_details?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
-  mode?: Resolver<Maybe<ResolversTypes["Category"]>, ParentType, ContextType>;
+  mode?: Resolver<ResolversTypes["Category"], ParentType, ContextType>;
   mode_id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
   status?: Resolver<ResolversTypes["ExpenseStatus"], ParentType, ContextType>;
-  tag?: Resolver<Maybe<ResolversTypes["Category"]>, ParentType, ContextType>;
+  tag?: Resolver<ResolversTypes["Category"], ParentType, ContextType>;
   tag_id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
   updated_at?: Resolver<ResolversTypes["DateTime"], ParentType, ContextType>;
   updated_by?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
@@ -660,13 +661,13 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
     Array<Maybe<ResolversTypes["ExpenseTracker"]>>,
     ParentType,
     ContextType,
-    RequireFields<QueryExpenseTrackerByUserIdsArgs, "user_id">
+    RequireFields<QueryExpenseTrackerByUserIdsArgs, "session_id" | "user_ids">
   >;
   paginatedExpenseTrackers?: Resolver<
     ResolversTypes["ExpenseTrackerConnection"],
     ParentType,
     ContextType,
-    Partial<QueryPaginatedExpenseTrackersArgs>
+    RequireFields<QueryPaginatedExpenseTrackersArgs, "session_id">
   >;
 };
 

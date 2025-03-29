@@ -209,7 +209,7 @@ type Query @extraSchemaDefinitionDirective(
   expenseModes(input: CategoryFilter) : [Category] @join__field(graph: EXPENSE_TRACKER) 
   expenseFynixes(input: CategoryFilter) : [Category] @join__field(graph: EXPENSE_TRACKER) 
   expenseTrackerById(session_id: ID!, id: ID!) : ExpenseTracker @merge(subgraph: "ExpenseTracker", keyField: "id", keyArg: "id")  @join__field(graph: EXPENSE_TRACKER) 
-  expenseTrackerByUserIds(user_id: [ID!]!) : [ExpenseTracker]! @join__field(graph: EXPENSE_TRACKER) 
+  expenseTrackerByUserIds(session_id: ID!, user_ids: [ID!]!) : [ExpenseTracker]! @join__field(graph: EXPENSE_TRACKER) 
   paginatedExpenseTrackers(session_id: ID, input: PaginatedExpenseInputs) : ExpenseTrackerConnection! @join__field(graph: EXPENSE_TRACKER) 
   userByEmail(input: UserByEmailInput!) : UserResponse @join__field(graph: USER_SERVICE) 
   userByfield(input: UserByFieldInput!) : [UserResponse] @join__field(graph: USER_SERVICE) 
