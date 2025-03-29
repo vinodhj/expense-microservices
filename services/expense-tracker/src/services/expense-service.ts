@@ -1,6 +1,7 @@
 import { ExpenseDataSource } from "@src/datasources/expense-datasources";
 import { SessionUserType } from ".";
 import {
+  Category,
   CreateExpenseTrackerInput,
   DeleteExpenseTrackerInput,
   ExpenseStatus,
@@ -27,19 +28,6 @@ export class ExpenseServiceAPI {
     this.sessionUser = sessionUser;
   }
 
-  // user_ids: [ID] # User filtering (for admin)
-  // expense_period: String
-  // tag_id: [ID]
-  // mode_id: [ID]
-  // fynix_id: [ID]
-
-  // # Amount range filtering
-  // min_amount: Float
-  // max_amount: Float
-
-  // # Status filtering
-  // statuses: [ExpenseStatus]
-
   async paginatedExpenseTrackers(args: QueryPaginatedExpenseTrackersArgs): Promise<ExpenseTrackerConnection> {
     try {
       trackerAccessValidators({ sessionUser: this.sessionUser, target: { user_id: args.session_id } });
@@ -49,7 +37,27 @@ export class ExpenseServiceAPI {
         sort: Sort.Desc,
         sort_by: Sort_By.CreatedAt,
       };
-      return (await this.expenseDataSource.paginatedExpenseTrackers(processedInput)) as unknown as ExpenseTrackerConnection;
+
+      const expenseTrackers = await this.expenseDataSource.paginatedExpenseTrackers(processedInput);
+      /**
+       * The type assertion tells TypeScript to treat the object as the correct type,
+       * while the nested resolvers will actually populate these fields(tags, modes & fynix) in the returned object.
+       */
+      return {
+        ...expenseTrackers,
+        edges: expenseTrackers.edges.map((edge) => ({
+          ...edge,
+          node: {
+            ...edge.node,
+            // These will be resolved by nested resolvers
+            is_disabled: edge.node.is_disabled ?? false,
+            tag: null as any,
+            mode: null as any,
+            fynix: null as any,
+            status: edge.node.status as unknown as ExpenseStatus,
+          },
+        })),
+      };
     } catch (error) {
       // Handle errors here
       if (error instanceof GraphQLError) {

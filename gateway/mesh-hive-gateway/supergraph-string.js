@@ -228,7 +228,7 @@ export const supergraphSdl = /* GraphQL */ `
       @merge(subgraph: "ExpenseTracker", keyField: "id", keyArg: "id")
       @join__field(graph: EXPENSE_TRACKER)
     expenseTrackerByUserIds(session_id: ID!, user_ids: [ID!]!): [ExpenseTracker]! @join__field(graph: EXPENSE_TRACKER)
-    paginatedExpenseTrackers(session_id: ID, input: PaginatedExpenseInputs): ExpenseTrackerConnection! @join__field(graph: EXPENSE_TRACKER)
+    paginatedExpenseTrackers(session_id: ID!, input: PaginatedExpenseInputs): ExpenseTrackerConnection! @join__field(graph: EXPENSE_TRACKER)
     userByEmail(input: UserByEmailInput!): UserResponse @join__field(graph: USER_SERVICE)
     userByfield(input: UserByFieldInput!): [UserResponse] @join__field(graph: USER_SERVICE)
     users: [UserResponse] @join__field(graph: USER_SERVICE)
@@ -428,9 +428,9 @@ export const supergraphSdl = /* GraphQL */ `
   input PaginatedExpenseInputs @join__type(graph: EXPENSE_TRACKER) {
     user_ids: [ID]
     expense_period: String
-    tag_id: [ID]
-    mode_id: [ID]
-    fynix_id: [ID]
+    tag_ids: [ID]
+    mode_ids: [ID]
+    fynix_ids: [ID]
     min_amount: Float
     max_amount: Float
     statuses: [ExpenseStatus]

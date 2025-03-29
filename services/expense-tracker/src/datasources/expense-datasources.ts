@@ -13,7 +13,7 @@ import {
   Sort_By,
   UpdateExpenseTrackerInput,
 } from "generated";
-import { eq, inArray, asc, desc, SQLWrapper, gt, lt } from "drizzle-orm";
+import { eq, inArray, asc, desc, SQLWrapper, gt, lt, gte, lte, and, SQL } from "drizzle-orm";
 import DataLoader from "dataloader";
 
 export class ExpenseDataSource {
@@ -39,6 +39,13 @@ export class ExpenseDataSource {
       },
     );
   }
+
+  // Mapping for status to reduce repetitive code
+  private static readonly STATUS_MAP: Record<string, expenseStatusType> = {
+    Paid: expenseStatusType.Paid,
+    UnPaid: expenseStatusType.UnPaid,
+    NextDue: expenseStatusType.NextDue,
+  };
 
   async expenseByUserBatchIds(ids: string[]) {
     try {
@@ -102,15 +109,15 @@ export class ExpenseDataSource {
     const sortField = sort_by === Sort_By.CreatedAt ? expenseTracker.created_at : expenseTracker.updated_at;
 
     try {
-      // Use the helper function to parse the cursor date safely
-      const afterDate = this.parseCursorDate(after);
+      // Get where conditions based on input filters
+      const whereCondition = this.buildExpenseWhereCondition(input, sortField, sort);
 
-      // Fetch all the user with pagination
+      // Execute the query with all conditions
       const result = await this.db
         .select()
         .from(expenseTracker)
+        .where(whereCondition)
         .orderBy(this.sorter(sortField, sort))
-        .where(sort === Sort.Asc ? gt(sortField, afterDate || new Date(0)) : lt(sortField, afterDate || new Date()))
         .limit(first + 1) // Fetch one extra to determine if there are more pages
         .execute();
 
@@ -141,13 +148,6 @@ export class ExpenseDataSource {
       });
     }
   }
-
-  // Mapping for status to reduce repetitive code
-  private static readonly STATUS_MAP: Record<string, expenseStatusType> = {
-    Paid: expenseStatusType.Paid,
-    UnPaid: expenseStatusType.UnPaid,
-    NextDue: expenseStatusType.NextDue,
-  };
 
   async expenseTrackerById(id: string) {
     try {
@@ -334,6 +334,78 @@ export class ExpenseDataSource {
           error,
         },
       });
+    }
+  }
+
+  // Helper to build WHERE conditions for expense tracker filtering
+  private buildExpenseWhereCondition(input: PaginatedExpenseInputs, sortField: any, sort: Sort): SQL | undefined {
+    const conditions: SQL[] = [];
+
+    const afterDate = this.parseCursorDate(input.after);
+
+    if (sort === Sort.Asc) {
+      conditions.push(gt(sortField, afterDate || new Date(0)));
+    } else {
+      conditions.push(lt(sortField, afterDate || new Date()));
+    }
+
+    // Add filters for array-type fields
+    this.addArrayFilters(conditions, input);
+
+    // Add filters for scalar fields
+    this.addScalarFilters(conditions, input);
+
+    // Combine all conditions with AND
+    return conditions.length > 1 ? and(...conditions) : conditions[0];
+  }
+
+  // Helper to add array-based filters
+  private addArrayFilters(conditions: SQL[], input: PaginatedExpenseInputs): void {
+    const { user_ids, tag_ids, mode_ids, fynix_ids, statuses } = input;
+
+    this.addFilterForArray(conditions, user_ids?.filter((id) => id !== null) ?? [], expenseTracker.user_id);
+    this.addFilterForArray(conditions, tag_ids?.filter((id) => id !== null) ?? [], expenseTracker.tag_id);
+    this.addFilterForArray(conditions, mode_ids?.filter((id) => id !== null) ?? [], expenseTracker.mode_id);
+    this.addFilterForArray(conditions, fynix_ids?.filter((id) => id !== null) ?? [], expenseTracker.fynix_id);
+
+    // Handle statuses specially due to mapping requirement
+    if (statuses && statuses.length > 0) {
+      const validStatuses = statuses
+        .map((status) => (status === null ? null : ExpenseDataSource.STATUS_MAP[status]))
+        .filter((status) => status !== null);
+
+      if (validStatuses.length > 0) {
+        conditions.push(inArray(expenseTracker.status, validStatuses));
+      }
+    }
+  }
+
+  // Helper for adding a generic array filter
+  private addFilterForArray(conditions: SQL[], ids: string[] | undefined, column: any): void {
+    if (ids && ids.length > 0) {
+      const validIds = ids.filter((id) => id !== null);
+      if (validIds.length > 0) {
+        conditions.push(inArray(column, validIds));
+      }
+    }
+  }
+
+  // Helper to add scalar filters
+  private addScalarFilters(conditions: SQL[], input: PaginatedExpenseInputs): void {
+    const { expense_period, min_amount, max_amount } = input;
+
+    // Filter by expense_period
+    if (expense_period && this.isValidExpensePeriod(expense_period)) {
+      conditions.push(eq(expenseTracker.expense_period, expense_period));
+    }
+
+    // Filter by amount range
+    if (min_amount !== undefined && min_amount !== null) {
+      conditions.push(gte(expenseTracker.amount, min_amount));
+    }
+
+    if (max_amount !== undefined && max_amount !== null) {
+      conditions.push(lte(expenseTracker.amount, max_amount));
     }
   }
 
