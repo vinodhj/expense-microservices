@@ -13,7 +13,8 @@
     "dev": "(kill -9 $(lsof -t -i:8502) || true) && wrangler dev --name expense-tracker --port 8502 --inspector-port 8302 --persist-to=.db-local",
     "test": "vitest",
     "cf-typegen": "wrangler types",
-    "prod:secrets": "./wrangler-secrets.sh"
+    "prod:secrets": "./wrangler-secrets.sh",
+    "dev:cron": "bash ./scheduled-curl.sh"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.7.5",
