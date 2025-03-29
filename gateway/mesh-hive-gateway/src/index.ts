@@ -110,6 +110,7 @@ export default {
         return new Response(
           JSON.stringify({
             errors: [{ message: `Rate limit exceeded. Please try again in ${penaltyDuration} seconds.` }],
+            extensions: { code: "RATE_LIMIT_EXCEEDED" },
             data: null,
           }),
           {
