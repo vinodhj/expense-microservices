@@ -146,7 +146,7 @@ query {
 ## Recommended Libraries
 
 - **DataLoader**: Batch and cache data fetching
-- **Apollo Server**: Robust GraphQL implementation
+- **GraphQL Yoga/Apollo Server**: Robust GraphQL implementation
 - **graphql-tools**: Advanced resolver composition
 
 ## Potential Pitfalls
