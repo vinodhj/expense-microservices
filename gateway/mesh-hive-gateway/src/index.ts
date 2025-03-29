@@ -3,6 +3,30 @@ import { initializeGateway } from "./gateway";
 import { addCorsHeaders, handleCorsPreflight } from "./helper/cors-helper";
 import { Redis } from "@upstash/redis";
 
+// Concurrency control function
+function checkConcurrency(): Response | null {
+  if (activeRequests >= MAX_CONCURRENT) {
+    console.log("Too many concurrent requests");
+    return new Response(
+      JSON.stringify({
+        errors: [{ message: "Too many concurrent requests" }],
+        data: null,
+      }),
+      {
+        status: 503,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+          "Retry-After": "5",
+        },
+      },
+    );
+  }
+
+  activeRequests++;
+  return null;
+}
+
 const initializeRedis = (env: Env): Redis | null => {
   if (env.ENVIRONMENT !== "DEV") {
     return new Redis({
@@ -35,6 +59,79 @@ const RATE_LIMIT = {
 const MAX_CONCURRENT = 4; // Reduced from 8 to give more headroom
 let activeRequests = 0;
 
+// Rate limiting function
+async function checkRateLimit(request: Request, redis: Redis | null, ctx: ExecutionContext): Promise<Response | null> {
+  // Skip rate limiting in DEV environment
+  if (!redis) {
+    return null;
+  }
+
+  const clientId = request.headers.get("CF-Connecting-IP") ?? "anonymous";
+  const rateLimitKey = `rate_limit:${clientId}`;
+  const blockedKey = `blocked:${clientId}`;
+
+  // Check if client is already blocked
+  const isBlocked = await redis.exists(blockedKey);
+  if (isBlocked) {
+    const remainingBlock = await redis.ttl(blockedKey);
+    return new Response(
+      JSON.stringify({
+        errors: [{ message: `Rate limit exceeded. Please try again in ${remainingBlock} seconds.` }],
+        extensions: { code: "RATE_LIMIT_EXCEEDED" },
+        data: null,
+      }),
+      {
+        status: 429,
+        headers: {
+          "Retry-After": remainingBlock.toString(),
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+      },
+    );
+  }
+
+  // Increment rate limit counter
+  const current = await redis.incr(rateLimitKey);
+
+  // Set TTL on first request in window
+  if (current === 1) {
+    ctx.waitUntil(redis.expire(rateLimitKey, RATE_LIMIT.WINDOW_SEC));
+  }
+
+  if (current > RATE_LIMIT.MAX_REQUESTS) {
+    // Get remaining window time
+    let ttl = await redis.ttl(rateLimitKey);
+    if (ttl <= 0) ttl = RATE_LIMIT.WINDOW_SEC; // Fallback if TTL missing
+
+    // Add 40-second penalty to the remaining window time
+    const penaltyDuration = ttl + 40;
+
+    // Set block with penalty duration
+    await redis.setex(blockedKey, penaltyDuration, "blocked");
+
+    // Delete the rate limit counter to reset for next window
+    await redis.del(rateLimitKey);
+
+    return new Response(
+      JSON.stringify({
+        errors: [{ message: `Rate limit exceeded. Please try again in ${penaltyDuration} seconds.` }],
+        data: null,
+      }),
+      {
+        status: 429,
+        headers: {
+          "Retry-After": penaltyDuration.toString(),
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+      },
+    );
+  }
+
+  return null;
+}
+
 // Request processing with performance tracking
 const processRequest = async (request: Request, gateway: GatewayRuntime<Record<string, any>>) => {
   const start = Date.now();
@@ -58,92 +155,17 @@ export default {
     // Initialize Redis
     const redis = initializeRedis(env);
 
-    // Rate limiting (only in non-DEV environments)
-    if (redis) {
-      const clientId = request.headers.get("CF-Connecting-IP") ?? "anonymous";
-      const rateLimitKey = `rate_limit:${clientId}`;
-      const blockedKey = `blocked:${clientId}`;
-
-      // Check if client is already blocked
-      const isBlocked = await redis.exists(blockedKey);
-      if (isBlocked) {
-        const remainingBlock = await redis.ttl(blockedKey);
-        return new Response(
-          JSON.stringify({
-            errors: [{ message: `Rate limit exceeded. Please try again in ${remainingBlock} seconds.` }],
-            extensions: { code: "RATE_LIMIT_EXCEEDED" },
-            data: null,
-          }),
-          {
-            status: 429,
-            headers: {
-              "Retry-After": remainingBlock.toString(),
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*",
-            },
-          },
-        );
-      }
-
-      // Increment rate limit counter
-      const current = await redis.incr(rateLimitKey);
-
-      // Set TTL on first request in window
-      if (current === 1) {
-        ctx.waitUntil(redis.expire(rateLimitKey, RATE_LIMIT.WINDOW_SEC)); // Don't await this
-      }
-
-      if (current > RATE_LIMIT.MAX_REQUESTS) {
-        // Get remaining window time
-        let ttl = await redis.ttl(rateLimitKey);
-        if (ttl <= 0) ttl = RATE_LIMIT.WINDOW_SEC; // Fallback if TTL missing
-
-        // Add 40-second penalty to the remaining window time
-        const penaltyDuration = ttl + 40;
-
-        // Set block with penalty duration
-        await redis.setex(blockedKey, penaltyDuration, "blocked");
-
-        // Delete the rate limit counter to reset for next window
-        await redis.del(rateLimitKey);
-
-        return new Response(
-          JSON.stringify({
-            errors: [{ message: `Rate limit exceeded. Please try again in ${penaltyDuration} seconds.` }],
-            data: null,
-          }),
-          {
-            status: 429,
-            headers: {
-              "Retry-After": penaltyDuration.toString(),
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*",
-            },
-          },
-        );
-      }
+    // Rate limiting check
+    const rateLimitResponse = await checkRateLimit(request, redis, ctx);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
     }
 
-    // Concurrency control - immediate rejection if too many requests
-    if (activeRequests >= MAX_CONCURRENT) {
-      console.log("Too many concurrent requests");
-      // Immediate rejection rather than queuing for 10ms limit
-      return new Response(
-        JSON.stringify({
-          errors: [{ message: "Too many concurrent requests" }],
-          data: null,
-        }),
-        {
-          status: 503,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Retry-After": "5",
-          },
-        },
-      );
+    // Concurrency control check
+    const concurrencyResponse = checkConcurrency();
+    if (concurrencyResponse) {
+      return concurrencyResponse;
     }
-    activeRequests++;
 
     try {
       // Initialize the gateway runtime
