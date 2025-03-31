@@ -6,10 +6,10 @@ type ExecutionArgs = {
   operationName?: string | null;
 };
 
-/**
- * Checks if the current operation accesses only fields with @public directive
- */
-export const isPublicOperation = (executionArgs: ExecutionArgs): boolean => {
+export const publicOperationMap = new Map<string, boolean>();
+
+// Create a new function for the expensive check:
+const checkPublicDirective = (executionArgs: ExecutionArgs): boolean => {
   try {
     const { document, schema, operationName } = executionArgs;
 
@@ -35,6 +35,30 @@ export const isPublicOperation = (executionArgs: ExecutionArgs): boolean => {
     console.error("Error checking for @public directive:", error);
     return false;
   }
+};
+
+/**
+ * Checks if the current operation accesses only fields with @public directive
+ */
+export const isPublicOperation = (executionArgs: ExecutionArgs): boolean => {
+  const { operationName } = executionArgs;
+
+  // Fast path: check cache first
+  if (operationName && publicOperationMap.has(operationName)) {
+    console.log("Using cached result for operation:", operationName);
+    // Use non-null assertion operator (!) or provide a fallback value
+    return publicOperationMap.get(operationName) ?? false;
+  }
+
+  // Only do expensive check if not in cache
+  const result = checkPublicDirective(executionArgs);
+
+  // Cache the result
+  if (operationName) {
+    publicOperationMap.set(operationName, result);
+  }
+
+  return result;
 };
 
 /**

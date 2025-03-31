@@ -7,11 +7,8 @@ import { createServiceRouter } from "./service-router";
 import { Redis } from "@upstash/redis/cloudflare";
 
 // Gateway setup
-export const initializeGateway = (env: Env) => {
+export const initializeGateway = (env: Env, redis: Redis) => {
   try {
-    // Initialize Redis
-    const redis = Redis.fromEnv(env);
-
     // Create auth functions
     const authFunctions = createAuthFunctions(env, redis);
 

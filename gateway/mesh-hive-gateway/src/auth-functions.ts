@@ -1,5 +1,5 @@
 import { ResolveUserFn, ValidateUserFn } from "@graphql-hive/gateway-runtime";
-import { jwtVerifyToken } from "./helper/jwt-verify-token";
+import { jwtVerifyToken } from "./helper/jwt";
 import { GraphQLError } from "graphql";
 import { Redis } from "@upstash/redis/cloudflare";
 import { isPublicOperation } from "./helper/public-operation";
