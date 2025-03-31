@@ -1,7 +1,7 @@
 export class RedisCircuitBreaker {
+  private state: "closed" | "open" | "half-open" = "closed";
   private failureCount: number = 0;
-  private circuitOpen: boolean = false;
-  private lastRetry: number = Date.now();
+  private lastFailureTime: number | null = null;
   private readonly failureThreshold: number;
   private readonly retryInterval: number;
 
@@ -11,25 +11,42 @@ export class RedisCircuitBreaker {
   }
 
   async execute<T>(operation: () => Promise<T>, fallback: () => T): Promise<T> {
-    if (this.circuitOpen) {
-      if (Date.now() - this.lastRetry > this.retryInterval) {
-        this.circuitOpen = false;
-        this.lastRetry = Date.now();
+    if (this.state === "open") {
+      if (Date.now() - (this.lastFailureTime ?? 0) > this.retryInterval) {
+        this.state = "half-open";
+        console.log("Circuit in half-open state, allowing trial");
       } else {
+        console.warn("Circuit open, using fallback");
         return fallback();
       }
     }
 
     try {
+      console.log("Executing operation");
       const result = await operation();
-      this.failureCount = 0; // Reset on success
+      this.#handleSuccess();
       return result;
     } catch (error) {
-      this.failureCount++;
-      if (this.failureCount >= this.failureThreshold) {
-        this.circuitOpen = true;
-      }
+      console.error("Operation failed:", error);
+      this.#handleFailure();
       return fallback();
+    }
+  }
+
+  #handleSuccess() {
+    this.failureCount = 0;
+    if (this.state === "half-open") {
+      this.state = "closed";
+      console.log("Circuit closed after successful trial");
+    }
+  }
+
+  #handleFailure() {
+    this.failureCount++;
+    if (this.state === "half-open" || this.failureCount >= this.failureThreshold) {
+      this.state = "open";
+      this.lastFailureTime = Date.now();
+      console.error(`Circuit opened due to failures: ${this.failureCount}`);
     }
   }
 }

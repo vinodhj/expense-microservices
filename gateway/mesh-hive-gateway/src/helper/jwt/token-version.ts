@@ -12,14 +12,19 @@ const redisBreaker = new RedisCircuitBreaker();
  * Fetch the current token version for this user (default to 0 if not set)
  */
 export async function verifyTokenVersion(payload: TokenPayload, redis: Redis, environment: string): Promise<void> {
-  const currentVersionStr = await redisBreaker.execute(
-    () => redis.get(`user:${environment}:${payload.email}:tokenVersion`),
-    () => {
-      console.warn("Redis circuit open, skipping token version check");
-      return payload.tokenVersion.toString();
-    },
-  );
+  // TODO: circuit breaker - WIP
+  const isCircuitBreaker = false;
+  if (isCircuitBreaker) {
+    const currentVersionStr = await redisBreaker.execute(
+      () => redis.get(`user:${environment}:${payload.email}:tokenVersion`),
+      () => {
+        console.warn("Redis circuit open, skipping token version check");
+        return payload.tokenVersion.toString();
+      },
+    );
+  }
 
+  const currentVersionStr = await redis.get(`user:${environment}:${payload.email}:tokenVersion`);
   const storedVersion = currentVersionStr ? parseInt(currentVersionStr as string) : 0;
 
   if (payload.tokenVersion !== storedVersion) {
