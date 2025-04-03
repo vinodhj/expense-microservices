@@ -328,7 +328,7 @@ export const supergraphSdl = /* GraphQL */ `
   }
 
   type UserEdge @join__type(graph: USER_SERVICE) {
-    node: User!
+    node: UserResponse!
     cursor: String!
   }
 

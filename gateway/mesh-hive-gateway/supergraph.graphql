@@ -248,7 +248,7 @@ type AdminKvAsset @join__type(graph: USER_SERVICE) {
 }
 
 type UserEdge @join__type(graph: USER_SERVICE) {
-  node: User!
+  node: UserResponse!
   cursor: String!
 }
 
