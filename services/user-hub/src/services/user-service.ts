@@ -55,12 +55,13 @@ export class UserServiceAPI {
     let result: UsersConnection;
     if (ids && ids.length > 0) {
       result = await this.userDataSource.userByIds(ids);
+      userCache.set(cacheKey, result);
+      return result;
     }
     result = await this.userDataSource.paginatedUsers(processedInput);
 
     // Cache the result
     userCache.set(cacheKey, result);
-
     return result;
   }
 

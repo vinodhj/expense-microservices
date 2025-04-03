@@ -36,23 +36,7 @@ export const supergraphSdl = /* GraphQL */ `
 
   directive @join__unionMember(graph: join__Graph!, member: String!) repeatable on UNION
 
-  scalar join__FieldSet
-
   directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
-
-  scalar link__Import
-
-  enum link__Purpose {
-    # \`SECURITY\` features provide metadata necessary to securely resolve fields.
-    # \`EXECUTION\` features provide metadata necessary for operation execution.
-    SECURITY
-    EXECUTION
-  }
-
-  enum join__Graph {
-    EXPENSE_TRACKER @join__graph(name: "ExpenseTracker", url: "http://localhost:8502/graphql")
-    USER_SERVICE @join__graph(name: "UserService", url: "http://localhost:8501/graphql")
-  }
 
   directive @transport(
     kind: String!
@@ -74,6 +58,24 @@ export const supergraphSdl = /* GraphQL */ `
   directive @extraSchemaDefinitionDirective(directives: _DirectiveExtensions) repeatable on OBJECT
 
   directive @public on FIELD_DEFINITION
+
+  directive @additionalField on FIELD_DEFINITION
+
+  scalar join__FieldSet
+
+  scalar link__Import
+
+  enum link__Purpose {
+    # \`SECURITY\` features provide metadata necessary to securely resolve fields.
+    # \`EXECUTION\` features provide metadata necessary for operation execution.
+    SECURITY
+    EXECUTION
+  }
+
+  enum join__Graph {
+    EXPENSE_TRACKER @join__graph(name: "ExpenseTracker", url: "http://localhost:8502/graphql")
+    USER_SERVICE @join__graph(name: "UserService", url: "http://localhost:8501/graphql")
+  }
 
   scalar DateTime @join__type(graph: EXPENSE_TRACKER) @join__type(graph: USER_SERVICE)
 
@@ -133,6 +135,7 @@ export const supergraphSdl = /* GraphQL */ `
     created_by: String!
     updated_by: String!
     is_disabled: Boolean!
+    user: User! @additionalField
   }
 
   type ExpenseTrackerSuccessResponse @join__type(graph: EXPENSE_TRACKER) {

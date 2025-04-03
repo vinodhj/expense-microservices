@@ -1,5 +1,7 @@
 import { loadGraphQLHTTPSubgraph, defineConfig as defineComposeConfig } from "@graphql-mesh/compose-cli";
 import { defineConfig as defineGatewayConfig } from "@graphql-hive/gateway";
+import { default as additionalResolvers$0 } from "@src/additional-resolvers";
+
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -86,9 +88,15 @@ export const composeConfig = defineComposeConfig({
       }),
     },
   ],
+  additionalTypeDefs: `
+  extend type ExpenseTracker {
+    user: User!
+  }
+`,
 });
 
 export const gatewayConfig = defineGatewayConfig({
+  additionalResolvers: [additionalResolvers$0],
   pollingInterval: 5_000,
   cors: { credentials: true },
   plugins: (ctx) => [],
