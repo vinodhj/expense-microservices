@@ -1,6 +1,6 @@
 import { loadGraphQLHTTPSubgraph, defineConfig as defineComposeConfig } from "@graphql-mesh/compose-cli";
 import { defineConfig as defineGatewayConfig } from "@graphql-hive/gateway";
-import { default as additionalResolvers$0 } from "@src/additional-resolvers";
+import { default as additionalResolvers$0 } from "@src/resolvers/additional-resolvers";
 
 import dotenv from "dotenv";
 dotenv.config();
