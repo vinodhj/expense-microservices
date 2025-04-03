@@ -45,7 +45,6 @@ export const isPublicOperation = (executionArgs: ExecutionArgs): boolean => {
 
   // Fast path: check cache first
   if (operationName && publicOperationMap.has(operationName)) {
-    console.log("Using cached result for operation:", operationName);
     // Use non-null assertion operator (!) or provide a fallback value
     return publicOperationMap.get(operationName) ?? false;
   }
