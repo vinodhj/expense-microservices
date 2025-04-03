@@ -225,7 +225,7 @@ export type UserByFieldInput = {
 export type UserEdge = {
   __typename?: "UserEdge";
   cursor: Scalars["String"]["output"];
-  node: User;
+  node: UserResponse;
 };
 
 export type UserResponse = {
@@ -588,7 +588,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
 
 export type UserEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes["UserEdge"] = ResolversParentTypes["UserEdge"]> = {
   cursor?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
-  node?: Resolver<ResolversTypes["User"], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes["UserResponse"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

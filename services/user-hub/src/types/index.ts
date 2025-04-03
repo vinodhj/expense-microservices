@@ -171,7 +171,7 @@ export const typeDefs = gql`
   }
 
   type UserEdge {
-    node: User!
+    node: UserResponse!
     cursor: String!
   }
 

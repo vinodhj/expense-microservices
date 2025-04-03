@@ -161,6 +161,7 @@ export type ExpenseTracker = {
   tag_id: Scalars["ID"]["output"];
   updated_at: Scalars["DateTime"]["output"];
   updated_by: Scalars["String"]["output"];
+  user: User;
   user_id: Scalars["String"]["output"];
 };
 

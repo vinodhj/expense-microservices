@@ -21,10 +21,9 @@ export default {
           throw new Error(`User not found for expense`);
         }
 
-        // Create loader if it doesn't exist
-        if (!context.usersLoader) {
-          context.usersLoader = createUsersLoader(context, info);
-        }
+        // Lazily initialize the loader
+        context.usersLoader ??= createUsersLoader(context, info);
+
         try {
           const user = await context.usersLoader.load(userId);
           if (!user) {

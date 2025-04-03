@@ -1,7 +1,34 @@
 import DataLoader from "dataloader";
 import { GraphQLResolveInfo } from "graphql";
 import { HiveGatewayContext } from "./additional-resolvers";
-import { User } from "generates";
+import { User, UserEdge, UsersConnection } from "generates";
+
+// Define the selection set for the paginatedUsers query
+const USER_SELECTION_SET = `{
+  edges {
+    cursor
+    node {
+      id
+      name
+      email
+      role
+      phone
+      address
+      city
+      state
+      country
+      zipcode
+      created_at
+      updated_at
+      created_by
+      updated_by
+    }
+  }
+  pageInfo {
+    endCursor
+    hasNextPage
+  }
+}`;
 
 export const createUsersLoader = (context: HiveGatewayContext, info: GraphQLResolveInfo): DataLoader<string, User | null> => {
   const userServiceQuery = context.UserService.query || context.UserService.Query;
@@ -10,36 +37,26 @@ export const createUsersLoader = (context: HiveGatewayContext, info: GraphQLReso
   }
 
   return new DataLoader<string, User | null>(
-    async (userIds: readonly string[]) => {
+    async (userIds: readonly string[]): Promise<Array<User | null>> => {
       try {
+        const uniqueIds = [...new Set(userIds)]; // Remove duplicates for efficiency
+
         // Using the GraphQL Mesh SDK directly with the right parameter structure
-        const result = await userServiceQuery.paginatedUsers({
+        const result: UsersConnection = await userServiceQuery.paginatedUsers({
           root: {},
-          args: { ids: userIds },
+          args: { ids: uniqueIds },
           context,
           info,
-          selectionSet: `{
-              edges {
-                node {
-                  id
-                  name
-                  email
-                  role
-                  created_at
-                  updated_at
-                }
-              }
-            }`,
+          // The selectionSet is a required parameter for non-scalar fields in GraphQL Mesh.
+          selectionSet: USER_SELECTION_SET,
         });
 
-        // Process the connection structure to extract users
-        const users = result?.edges?.map((edge: any) => edge.node) || [];
+        // Create a map for O(1) lookups
+        const userMap = new Map<string, User>();
 
-        // Create a map for faster lookups
-        const userMap = new Map();
-        users.forEach((user: any) => {
-          if (user?.id) {
-            userMap.set(user.id, user);
+        result?.edges?.forEach((edge: UserEdge) => {
+          if (edge.node?.id) {
+            userMap.set(edge.node.id, edge.node);
           }
         });
 
@@ -52,15 +69,18 @@ export const createUsersLoader = (context: HiveGatewayContext, info: GraphQLReso
           return user || null;
         });
       } catch (error: unknown) {
-        console.error("Error batch loading users:", error);
-
-        // For debugging purposes, we'll still return mock data if the real query fails
-        console.warn("Returning mock users for debugging");
-        return userIds.map(() => null);
+        console.error("Error batch loading users:", error instanceof Error ? error.message : String(error));
+        throw error;
       }
     },
     {
       maxBatchSize: 20,
+      /**
+       * Groups more load requests together, reducing the number of database queries,
+       * Particularly useful when resolving multiple related fields that each need user data
+       * Can significantly reduce the "N+1 query problem" in GraphQL resolvers
+       */
+      batchScheduleFn: (callback) => setTimeout(callback, 0),
     },
   );
 };
