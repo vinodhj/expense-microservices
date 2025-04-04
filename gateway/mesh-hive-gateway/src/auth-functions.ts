@@ -37,7 +37,7 @@ export const createAuthFunctions = (env: Env, redis: Redis) => {
     try {
       // Verify token
       const jwtToken = await jwtVerifyToken({
-        token: accessToken,
+        token: accessToken.replace(/bearer\s+/i, "").trim(),
         secret: env.JWT_SECRET,
         kvStorage: env.EXPENSE_AUTH_EVENTS_KV,
         redis,

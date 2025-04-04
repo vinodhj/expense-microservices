@@ -10,7 +10,7 @@ export default {
 
     // Handle CORS preflight immediately (fastest path)
     if (request.method === "OPTIONS") {
-      return handleCorsPreflight();
+      return handleCorsPreflight(request, env);
     }
 
     try {
@@ -38,11 +38,13 @@ export default {
 
       // Return with CORS headers
       return addCorsHeaders(
+        request,
         new Response(response.body, {
           status: response.status,
           statusText: response.statusText,
           headers,
         }),
+        env,
       );
     } catch (error: any) {
       console.error("Gateway error:", error);
@@ -50,6 +52,7 @@ export default {
       const isGraphQLError = error.hasOwnProperty("locations") || error.hasOwnProperty("path") || error.extensions?.code;
 
       return addCorsHeaders(
+        request,
         new Response(
           JSON.stringify({
             errors: [
@@ -69,6 +72,7 @@ export default {
             },
           },
         ),
+        env,
       );
     }
   },
