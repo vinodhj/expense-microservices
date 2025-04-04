@@ -1323,6 +1323,8 @@ flowchart TB
 
 - [Cache Implementation - Expense Service API - Documentation (Expense Tracker)](cache-expense-services-api.md) - Contains detailed specifications for the expense tracker caching system.
 
+- [GraphQL Nested Resolvers: Deep Dive](graphQL-nested-resolvers.md) - Contains detailed specifications for the GraphQL Nested Resolvers.
+
 ## Conclusion
 
 The above schema and other information needs to be in alliance with the conventions present in the ADRs.
