@@ -17,7 +17,7 @@ import {
 } from "generated";
 import { trackerAccessValidators, trackerInputValidators } from "./helper/tracker-access-validators";
 import { GraphQLError } from "graphql";
-import { trackerCache } from "@src/cache/in-memory-cache";
+import { expenseCache } from "@src/cache/in-memory-cache";
 
 export class ExpenseServiceAPI {
   private readonly expenseDataSource: ExpenseDataSource;
@@ -77,7 +77,7 @@ export class ExpenseServiceAPI {
       const cacheKey = this.generatePaginatedExpenseCacheKey(args.session_id, processedInput);
 
       // Check cache first
-      const cachedData = trackerCache.get(cacheKey);
+      const cachedData = expenseCache.get(cacheKey);
       if (cachedData) {
         return cachedData;
       }
@@ -105,7 +105,7 @@ export class ExpenseServiceAPI {
       };
 
       // Set the data in cache
-      trackerCache.set(cacheKey, result);
+      expenseCache.set(cacheKey, result);
 
       return result;
     } catch (error) {
@@ -133,7 +133,7 @@ export class ExpenseServiceAPI {
       const cacheKey = `expense_by_users:${args.user_ids.sort().join(",")}`;
 
       // Check cache first
-      const cachedData = trackerCache.get(cacheKey);
+      const cachedData = expenseCache.get(cacheKey);
       if (cachedData) {
         return cachedData;
       }
@@ -154,7 +154,7 @@ export class ExpenseServiceAPI {
       })) as Array<ExpenseTracker>;
 
       // Store in cache
-      trackerCache.set(cacheKey, result);
+      expenseCache.set(cacheKey, result);
 
       return result;
     } catch (error) {
@@ -180,7 +180,7 @@ export class ExpenseServiceAPI {
       const cacheKey = `expense:${args.id}`;
 
       // Check cache first
-      const cachedData = trackerCache.get(cacheKey);
+      const cachedData = expenseCache.get(cacheKey);
       if (cachedData) {
         return cachedData;
       }
@@ -201,7 +201,7 @@ export class ExpenseServiceAPI {
       } as ExpenseTracker;
 
       // Store in cache
-      trackerCache.set(cacheKey, result);
+      expenseCache.set(cacheKey, result);
 
       return result;
     } catch (error) {
@@ -256,7 +256,7 @@ export class ExpenseServiceAPI {
       const result = await this.expenseDataSource.updateExpenseTracker(input);
 
       // Invalidate specific expense and user expense caches
-      trackerCache.delete(`expense:${input.id}`);
+      expenseCache.delete(`expense:${input.id}`);
       this.invalidateUserExpenseCaches(input.user_id);
       this.invalidateTagModeFynixCaches(input.tag_id, input.mode_id, input.fynix_id);
 
@@ -290,7 +290,7 @@ export class ExpenseServiceAPI {
       ]);
 
       // Invalidate specific expense and user expense caches
-      trackerCache.delete(`expense:${input.id}`);
+      expenseCache.delete(`expense:${input.id}`);
       this.invalidateUserExpenseCaches(input.user_id);
 
       // If we have the expense data, invalidate related caches
@@ -317,25 +317,25 @@ export class ExpenseServiceAPI {
   // Helper method to invalidate all caches related to a specific user
   private invalidateUserExpenseCaches(userId: string): void {
     // Invalidate any paginated queries for this user
-    trackerCache.invalidateByPattern(`paginated_expenses:.*session:${userId}|.*`);
-    trackerCache.invalidateByPattern(`paginated_expenses:.*users:${userId}.*`);
+    expenseCache.invalidateByPattern(`paginated_expenses:.*session:${userId}|.*`);
+    expenseCache.invalidateByPattern(`paginated_expenses:.*users:${userId}.*`);
 
     // Invalidate any user-specific expense lists
-    trackerCache.invalidateByPattern(`expense_by_users:.*${userId}.*`);
+    expenseCache.invalidateByPattern(`expense_by_users:.*${userId}.*`);
   }
 
   // Helper method to invalidate caches related to specific tags, modes, or fynixes
   private invalidateTagModeFynixCaches(tagId?: string, modeId?: string, fynixId?: string): void {
     if (tagId) {
-      trackerCache.invalidateByPattern(`paginated_expenses:.*tags:${tagId}.*`);
+      expenseCache.invalidateByPattern(`paginated_expenses:.*tags:${tagId}.*`);
     }
 
     if (modeId) {
-      trackerCache.invalidateByPattern(`paginated_expenses:.*modes:${modeId}.*`);
+      expenseCache.invalidateByPattern(`paginated_expenses:.*modes:${modeId}.*`);
     }
 
     if (fynixId) {
-      trackerCache.invalidateByPattern(`paginated_expenses:.*fynix:${fynixId}.*`);
+      expenseCache.invalidateByPattern(`paginated_expenses:.*fynix:${fynixId}.*`);
     }
   }
 }

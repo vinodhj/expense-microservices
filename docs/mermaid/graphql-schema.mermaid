@@ -1,49 +1,54 @@
 erDiagram
-    Category {
-        ID id
-        String name
-        DateTime created_at
-        DateTime updated_at
-        String created_by
-        String updated_by
-    }
+Category {
+ID id
+String name
+CategoryType category_type
+DateTime created_at
+DateTime updated_at
+String created_by
+String updated_by
+Boolean is_disabled
+}
 
-    ExpenseTracker {
-        ID id
-        String user_id
-        String expense_period
-        Float amount
-        String description
-        String item_details
-        ExpenseStatus status
-        DateTime created_at
-        DateTime updated_at
-        String created_by
-        String updated_by
-        Boolean is_disabled
-    }
+ExpenseTracker {
+ID id
+String user_id
+String expense_period
+Float amount
+String description
+String item_details
+ID tag_id
+ID mode_id
+ID fynix_id
+ExpenseStatus status
+DateTime created_at
+DateTime updated_at
+String created_by
+String updated_by
+Boolean is_disabled
+}
 
-    ExpenseStatus ||--|| ExpenseTracker : defines
-    CategoryType ||--|| Category : categorizes
+CategoryType ||--o{ Category : categorizes
+ExpenseStatus ||--o{ ExpenseTracker : defines
 
-    ExpenseTracker ||--|| Category : "has tag"
-    ExpenseTracker ||--|| Category : "has mode"
-    ExpenseTracker ||--|| Category : "has fynix"
+ExpenseTracker }|--|| Category : "has tag"
+ExpenseTracker }|--|| Category : "has mode"
+ExpenseTracker }|--|| Category : "has fynix"
 
-    Mutation {
-        createCategory
-        updateCategory
-        deleteCategory
-        createExpenseTracker
-        updateExpenseTracker
-        deleteExpenseTracker
-    }
+Mutation {
+createCategory_CreateCategoryInput_CategoryResponse
+updateCategory_UpdateCategoryInput_CategoryResponse
+deleteCategory_DeleteCategoryInput_Boolean
+createExpenseTracker_CreateExpenseTrackerInput_ExpenseTrackerResponse
+updateExpenseTracker_UpdateExpenseTrackerInput_ExpenseTrackerResponse
+deleteExpenseTracker_DeleteExpenseTrackerInput_Boolean
+}
 
-    Query {
-        expenseTags
-        expenseModes
-        expenseFynixes
-        expenseTrackerById
-        expenseTrackerByUserIds
-        paginatedExpenseTrackers
-    }
+Query {
+expenseTags_CategoryFilter_CategoryArray
+expenseModes_CategoryFilter_CategoryArray
+expenseFynixes_CategoryFilter_CategoryArray
+expenseTrackerById_ID_ID_ExpenseTracker
+expenseTrackerByUserIds_ID_IDArray_ExpenseTrackerArray
+paginatedExpenseTrackers_ID_PaginatedExpenseInputs_ExpenseTrackerConnection
+}

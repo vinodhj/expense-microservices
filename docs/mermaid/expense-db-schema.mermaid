@@ -1,52 +1,52 @@
 erDiagram
-    expense_tags {
-        text id PK
-        text name
+    EXPENSE_TAGS {
+        string id PK
+        string name
         integer created_at
         integer updated_at
-        text created_by
-        text updated_by
-        integer is_disabled
+        string created_by
+        string updated_by
+        boolean is_disabled
     }
 
-    expense_modes {
-        text id PK
-        text name
+    EXPENSE_MODES {
+        string id PK
+        string name
         integer created_at
         integer updated_at
-        text created_by
-        text updated_by
-        integer is_disabled
+        string created_by
+        string updated_by
+        boolean is_disabled
     }
 
-    expense_fynix {
-        text id PK
-        text name
+    EXPENSE_FYNIX {
+        string id PK
+        string name
         integer created_at
         integer updated_at
-        text created_by
-        text updated_by
-        integer is_disabled
+        string created_by
+        string updated_by
+        boolean is_disabled
     }
 
-    expense_tracker {
-        text id PK
-        text user_id
-        text expense_period
+    EXPENSE_TRACKER {
+        string id PK
+        string user_id
+        string expense_period
         real amount
-        text description
-        text item_details
-        text tag_id FK
-        text mode_id FK
-        text fynix_id FK
-        text status
+        string description
+        string item_details
+        string tag_id FK
+        string mode_id FK
+        string fynix_id FK
+        string status
         integer created_at
         integer updated_at
-        text created_by
-        text updated_by
-        integer is_disabled
+        string created_by
+        string updated_by
+        boolean is_disabled
     }
 
-    expense_tracker }o--|| expense_tags : "uses tag"
-    expense_tracker }o--|| expense_modes : "uses mode"
-    expense_tracker }o--|| expense_fynix : "uses fynix"
+    EXPENSE_TRACKER ||--o{ EXPENSE_TAGS : has_tag
+    EXPENSE_TRACKER ||--o{ EXPENSE_MODES : has_mode
+    EXPENSE_TRACKER ||--o{ EXPENSE_FYNIX : has_fynix

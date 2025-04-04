@@ -34,7 +34,7 @@ The Expense Tracker Service is a microservice in our architecture that provides 
 
 ### External Values
 
-N/A
+`user-id`
 
 ### Required Headers
 
@@ -247,10 +247,6 @@ mutation CreateExpense($input: CreateExpenseTrackerInput!) {
 }
 ```
 
-### KV Sync Endpoint: `/kv-site-assets`
-
-Reserved for internal use to synchronize KV storage. Requires authentication via `KV_SYNC_TOKEN`.
-
 ## Authentication & Security
 
 The service implements several security mechanisms:
@@ -321,7 +317,7 @@ type SessionUserType = {
   role: Role; // ADMIN or USER
   email: string;
   name: string;
-} | null;
+};
 ```
 
 ### 5. CORS Protection
@@ -631,10 +627,6 @@ flowchart TD
 
 Manages GraphQL request processing, context setup, and security validation.
 
-### KV Sync Handler (`handlers/kv-sync.ts`)
-
-Handles KV storage synchronization for authentication configuration.
-
 ### Security Middleware (`security-middleware.ts`)
 
 Implements security validation logic including:
@@ -686,25 +678,21 @@ Handles Cross-Origin Resource Sharing (CORS) headers and preflight requests.
 │   ├── helper                 # Helper file for date formatting, validators, etc.
 │   ├── index.ts               # Service exports
 │   ├── category-service.ts    # Category management services
-│   ├── expense-service.ts     # Expense tracking services
-│   └── kv-storage-service.ts  # KV storage services
+│   └──expense-service.ts      # Expense tracking services
 ├── schemas/
 │   └── index.ts               # Schema exports (from typeDefs)
 ├── datasources/
 │   ├── category.ts            # Category data access
-│   ├── expense.ts             # Expense data access
-│   ├── kv-storage.ts          # KV access
-│   └── utils.ts
+│   └── expense.ts             # Expense data access
 ├── resolvers/
-│   ├── index.ts               # Resolver exports
-│   └── mutations/             # Mutation resolvers
-│        ├── category.ts
-│        ├── expense.ts
-│        └── index.ts
-│   └── queries/               # Query resolvers
-│        ├── category.ts
-│        ├── expense.ts
-│        └── index.ts
+|   ├── index.ts
+|   ├──  nested-resolvers.ts
+│   └── category/
+│     ├──mutations/
+│     └── queries/
+│   └── expense/
+│     ├──mutations/
+│     └── queries/
 ├── types/
 │   └── index.ts               # Type exports (GraphQL schema)
 ├── cors-headers.ts            # CORS handling utilities
@@ -713,24 +701,57 @@ Handles Cross-Origin Resource Sharing (CORS) headers and preflight requests.
 
 ## DB Structure
 
-### Category Table
+The Expense Tracker Service uses the following database schema:
 
-| Field         | Types   | Constraint   | Format   |
-| ------------- | ------- | ------------ | -------- |
-| id            | TEXT    | PK, NOT NULL |          |
-| name          | TEXT    | NOT NULL     |          |
-| category_type | TEXT    | NOT NULL     |          |
-| created_at    | INTEGER | NOT NULL     | DateTime |
-| updated_at    | INTEGER | NOT NULL     | DateTime |
-| created_by    | TEXT    | NOT NULL     |          |
-| updated_by    | TEXT    | NOT NULL     |          |
-| is_disabled   | INTEGER | NOT NULL     | Boolean  |
+### Expense Tags Table (`expense_tags`)
+
+| Field       | Types   | Constraint   | Format   |
+| ----------- | ------- | ------------ | -------- |
+| id          | TEXT    | PK, NOT NULL |          |
+| name        | TEXT    | NOT NULL     |          |
+| created_at  | INTEGER | NOT NULL     | DateTime |
+| updated_at  | INTEGER | NOT NULL     | DateTime |
+| created_by  | TEXT    | NOT NULL     |          |
+| updated_by  | TEXT    | NOT NULL     |          |
+| is_disabled | INTEGER | DEFAULT 0    | Boolean  |
 
 **Indexes**
 
-- `idx_name_type` on **name** and **category_type**
+- `idx_unique_tags_name` (UNIQUE) on **name**
 
-### Expense Tracker Table
+### Expense Modes Table (`expense_modes`)
+
+| Field       | Types   | Constraint   | Format   |
+| ----------- | ------- | ------------ | -------- |
+| id          | TEXT    | PK, NOT NULL |          |
+| name        | TEXT    | NOT NULL     |          |
+| created_at  | INTEGER | NOT NULL     | DateTime |
+| updated_at  | INTEGER | NOT NULL     | DateTime |
+| created_by  | TEXT    | NOT NULL     |          |
+| updated_by  | TEXT    | NOT NULL     |          |
+| is_disabled | INTEGER | DEFAULT 0    | Boolean  |
+
+**Indexes**
+
+- `idx_unique_modes_name` (UNIQUE) on **name**
+
+### Expense Fynix Table (`expense_fynix`)
+
+| Field       | Types   | Constraint   | Format   |
+| ----------- | ------- | ------------ | -------- |
+| id          | TEXT    | PK, NOT NULL |          |
+| name        | TEXT    | NOT NULL     |          |
+| created_at  | INTEGER | NOT NULL     | DateTime |
+| updated_at  | INTEGER | NOT NULL     | DateTime |
+| created_by  | TEXT    | NOT NULL     |          |
+| updated_by  | TEXT    | NOT NULL     |          |
+| is_disabled | INTEGER | DEFAULT 0    | Boolean  |
+
+**Indexes**
+
+- `idx_unique_fynix_name` (UNIQUE) on **name**
+
+### Expense Tracker Table (`expense_tracker`)
 
 | Field          | Types   | Constraint   | Format   |
 | -------------- | ------- | ------------ | -------- |
@@ -740,32 +761,58 @@ Handles Cross-Origin Resource Sharing (CORS) headers and preflight requests.
 | amount         | REAL    | NOT NULL     |          |
 | description    | TEXT    | Nullable     |          |
 | item_details   | TEXT    | Nullable     |          |
-| tag_id         | TEXT    | NOT NULL     | FK       |
-| mode_id        | TEXT    | NOT NULL     | FK       |
-| fynix_id       | TEXT    | NOT NULL     | FK       |
+| tag_id         | TEXT    | NOT NULL, FK |          |
+| mode_id        | TEXT    | NOT NULL, FK |          |
+| fynix_id       | TEXT    | NOT NULL, FK |          |
 | status         | TEXT    | NOT NULL     |          |
 | created_at     | INTEGER | NOT NULL     | DateTime |
 | updated_at     | INTEGER | NOT NULL     | DateTime |
 | created_by     | TEXT    | NOT NULL     |          |
 | updated_by     | TEXT    | NOT NULL     |          |
-| is_disabled    | INTEGER | NOT NULL     | Boolean  |
+| is_disabled    | INTEGER | DEFAULT 0    | Boolean  |
+
+**Foreign Key Constraints**
+
+- `tag_id` references `expense_tags(id)`
+- `mode_id` references `expense_modes(id)`
+- `fynix_id` references `expense_fynix(id)`
 
 **Indexes**
 
-- `idx_user_id` on **user_id**
-- `idx_expense_period` on **expense_period**
-- `idx_status` on **status**
-- `idx_tag_id` on **tag_id**
-- `idx_mode_id` on **mode_id**
-- `idx_fynix_id` on **fynix_id**
-- `composite_user_period` on **user_id** and **expense_period**
+- `idx_expense_tracker_user_id` on **user_id**
+- `idx_user_expense_period` on **user_id** and **expense_period**
+- `idx_foreign_keys` on **tag_id**, **mode_id**, and **fynix_id**
+- `composite_tag_amount` on **tag_id** and **amount**
+- `composite_mode_amount` on **mode_id** and **amount**
+- `composite_fynix_amount` on **fynix_id** and **amount**
+
+**ER diagram**
 
 ```mermaid
 erDiagram
-    CATEGORY {
+    EXPENSE_TAGS {
         string id PK
         string name
-        string category_type
+        integer created_at
+        integer updated_at
+        string created_by
+        string updated_by
+        boolean is_disabled
+    }
+
+    EXPENSE_MODES {
+        string id PK
+        string name
+        integer created_at
+        integer updated_at
+        string created_by
+        string updated_by
+        boolean is_disabled
+    }
+
+    EXPENSE_FYNIX {
+        string id PK
+        string name
         integer created_at
         integer updated_at
         string created_by
@@ -791,9 +838,295 @@ erDiagram
         boolean is_disabled
     }
 
-    EXPENSE_TRACKER ||--o{ CATEGORY : has_tag
-    EXPENSE_TRACKER ||--o{ CATEGORY : has_mode
-    EXPENSE_TRACKER ||--o{ CATEGORY : has_fynix
+    EXPENSE_TRACKER ||--o{ EXPENSE_TAGS : has_tag
+    EXPENSE_TRACKER ||--o{ EXPENSE_MODES : has_mode
+    EXPENSE_TRACKER ||--o{ EXPENSE_FYNIX : has_fynix
+```
+
+## GraphQL Schema
+
+### GraphQL Schema (Types)
+
+```GraphQL
+scalar DateTime
+
+# Expense Status Enum
+enum ExpenseStatus {
+  Paid
+  UnPaid
+  NextDue
+}
+
+# Sorting and Pagination Enums
+enum Sort {
+  ASC
+  DESC
+}
+
+# TODO: use SortBy (PascalCase)
+enum SORT_BY {
+  CREATED_AT
+  UPDATED_AT
+  AMOUNT
+}
+
+# Enum for different category types
+enum CategoryType {
+  EXPENSE_TAG
+  EXPENSE_MODE
+  EXPENSE_FYNIX
+}
+
+# Generic category type to represent different category entities - we not using this for now
+type GenericCategoryResponse {
+  id: ID!
+  name: String!
+  category_type: CategoryType!
+  created_at: DateTime!
+  updated_at: DateTime!
+  created_by: String!
+  updated_by: String!
+  is_disabled: Boolean!
+}
+
+type Category {
+  id: ID!
+  name: String!
+  created_at: DateTime!
+  updated_at: DateTime!
+  created_by: String!
+  updated_by: String!
+}
+
+type CategorySuccessResponse {
+  id: ID!
+  name: String!
+  category_type: CategoryType!
+}
+
+type CategoryResponse {
+  success: Boolean!
+  category: CategorySuccessResponse
+}
+
+# Generic input for creating/updating categories
+input CreateCategoryInput {
+  category_type: CategoryType!
+  name: String!
+}
+
+input UpdateCategoryInput {
+  id: ID!
+  category_type: CategoryType!
+  name: String!
+}
+
+input DeleteCategoryInput {
+  id: ID!
+  category_type: CategoryType!
+}
+
+input CategoryFilter {
+  id: ID
+  search: String # Allow partial name matching
+}
+
+# Expense Tracker Type
+type ExpenseTracker {
+  id: ID!
+  user_id: String!
+  expense_period: String!
+  amount: Float!
+  description: String
+  item_details: String
+  tag_id: ID!
+  mode_id: ID!
+  fynix_id: ID!
+  tag: Category!
+  mode: Category!
+  fynix: Category!
+  status: ExpenseStatus!
+  created_at: DateTime!
+  updated_at: DateTime!
+  created_by: String!
+  updated_by: String!
+  is_disabled: Boolean!
+}
+
+type ExpenseTrackerSuccessResponse {
+  id: ID!
+  user_id: String!
+  expense_period: String!
+  amount: Float!
+  description: String
+  item_details: String
+  status: ExpenseStatus!
+  tag_id: ID!
+  mode_id: ID!
+  fynix_id: ID!
+  created_at: DateTime!
+  updated_at: DateTime!
+  created_by: String!
+  updated_by: String!
+}
+
+# Edge and Connection Types for Pagination
+type ExpenseTrackerEdge {
+  node: ExpenseTracker!
+  cursor: String!
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+}
+
+type ExpenseTrackerConnection {
+  edges: [ExpenseTrackerEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ExpenseTrackerResponse {
+  success: Boolean!
+  expenseTracker: ExpenseTrackerSuccessResponse
+}
+
+# Input Type for Expense Tracker
+input CreateExpenseTrackerInput {
+  user_id: ID!
+  expense_period: String!
+  amount: Float!
+  description: String
+  item_details: String
+  tag_id: ID!
+  mode_id: ID!
+  fynix_id: ID!
+  status: ExpenseStatus!
+}
+
+input UpdateExpenseTrackerInput {
+  id: ID!
+  user_id: ID!
+  expense_period: String!
+  amount: Float!
+  description: String
+  item_details: String
+  tag_id: ID!
+  mode_id: ID!
+  fynix_id: ID!
+  status: ExpenseStatus!
+}
+
+input DeleteExpenseTrackerInput {
+  id: ID!
+  user_id: ID!
+}
+
+# Paginated Inputs
+input PaginatedExpenseInputs {
+  user_ids: [ID] # User filtering (for admin)
+  expense_period: String
+  tag_ids: [ID]
+  mode_ids: [ID]
+  fynix_ids: [ID]
+
+  # Amount range filtering
+  min_amount: Float
+  max_amount: Float
+
+  # Status filtering
+  statuses: [ExpenseStatus]
+
+  # Pagination and sorting
+  first: Int = 10
+  after: String
+  sort: Sort = DESC
+  sort_by: SORT_BY = CREATED_AT
+}
+
+# Query Types
+type Query {
+  expenseTags(input: CategoryFilter): [Category]
+  expenseModes(input: CategoryFilter): [Category]
+  expenseFynixes(input: CategoryFilter): [Category]
+
+  # Expense Tracker Queries
+  expenseTrackerById(session_id: ID!, id: ID!): ExpenseTracker
+  expenseTrackerByUserIds(session_id: ID!, user_ids: [ID!]!): [ExpenseTracker]!
+  paginatedExpenseTrackers(session_id: ID!, input: PaginatedExpenseInputs): ExpenseTrackerConnection!
+}
+
+# Mutation Types
+type Mutation {
+  # Generic mutation for creating/updating/deleting category
+  createCategory(input: CreateCategoryInput!): CategoryResponse!
+  updateCategory(input: UpdateCategoryInput!): CategoryResponse!
+  deleteCategory(input: DeleteCategoryInput!): Boolean!
+
+  # Expense Tracker Mutations
+  createExpenseTracker(input: CreateExpenseTrackerInput!): ExpenseTrackerResponse!
+  updateExpenseTracker(input: UpdateExpenseTrackerInput!): ExpenseTrackerResponse!
+  deleteExpenseTracker(input: DeleteExpenseTrackerInput!): Boolean!
+}
+```
+
+**Schema ER Diagram**
+
+```mermaid
+erDiagram
+    Category {
+        ID id
+        String name
+        CategoryType category_type
+        DateTime created_at
+        DateTime updated_at
+        String created_by
+        String updated_by
+        Boolean is_disabled
+    }
+
+    ExpenseTracker {
+        ID id
+        String user_id
+        String expense_period
+        Float amount
+        String description
+        String item_details
+        ID tag_id
+        ID mode_id
+        ID fynix_id
+        ExpenseStatus status
+        DateTime created_at
+        DateTime updated_at
+        String created_by
+        String updated_by
+        Boolean is_disabled
+    }
+
+    CategoryType ||--o{ Category : categorizes
+    ExpenseStatus ||--o{ ExpenseTracker : defines
+
+    ExpenseTracker }|--|| Category : "has tag"
+    ExpenseTracker }|--|| Category : "has mode"
+    ExpenseTracker }|--|| Category : "has fynix"
+
+    Mutation {
+        createCategory_CreateCategoryInput_CategoryResponse
+        updateCategory_UpdateCategoryInput_CategoryResponse
+        deleteCategory_DeleteCategoryInput_Boolean
+        createExpenseTracker_CreateExpenseTrackerInput_ExpenseTrackerResponse
+        updateExpenseTracker_UpdateExpenseTrackerInput_ExpenseTrackerResponse
+        deleteExpenseTracker_DeleteExpenseTrackerInput_Boolean
+    }
+
+    Query {
+        expenseTags_CategoryFilter_CategoryArray
+        expenseModes_CategoryFilter_CategoryArray
+        expenseFynixes_CategoryFilter_CategoryArray
+        expenseTrackerById_ID_ID_ExpenseTracker
+        expenseTrackerByUserIds_ID_IDArray_ExpenseTrackerArray
+        paginatedExpenseTrackers_ID_PaginatedExpenseInputs_ExpenseTrackerConnection
+    }
 ```
 
 ## Service API Interfaces and Data Sources
@@ -835,21 +1168,6 @@ class ExpenseService {
 
 - **Category Data Source** (`datasources/category.ts`): Handles CRUD operations for categories
 - **Expense Data Source** (`datasources/expense.ts`): Handles CRUD operations for expenses
-- **KV Storage Data Source** (`datasources/kv-storage.ts`): Handles KV operations
-
-**Example:**
-
-```typescript
-class CategoryDataSource {
-  constructor(private db: D1Database) {}
-
-  async findById(id: string, type: CategoryType): Promise<Category | null>;
-  async findByType(type: CategoryType, filter?: CategoryFilter): Promise<Category[]>;
-  async create(data: CreateCategoryInput, user: SessionUserType): Promise<Category>;
-  async update(data: UpdateCategoryInput, user: SessionUserType): Promise<Category>;
-  async delete(id: string, type: CategoryType): Promise<boolean>;
-}
-```
 
 ### Component Interaction Flow
 

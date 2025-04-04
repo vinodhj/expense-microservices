@@ -1,4 +1,4 @@
-import { trackerCache } from "@src/cache/in-memory-cache";
+import { categoryCache, expenseCache } from "@src/cache/in-memory-cache";
 
 /**
  * A general rule of thumb is to have the cleanup interval be 1/2 to 1/3 of TTL.
@@ -10,12 +10,14 @@ import { trackerCache } from "@src/cache/in-memory-cache";
  */
 export async function runCacheCleanup(_env: Env, _ctx: ExecutionContext) {
   console.info("Running scheduled cache cleanup - Expired entries");
-  trackerCache.cleanupExpired();
+  categoryCache.cleanupExpired();
+  expenseCache.cleanupExpired();
   console.info("Cache cleanup completed");
 }
 
 export async function runCleanCacheAll(_env: Env, _ctx: ExecutionContext) {
   console.info("Running scheduled cache cleanup - All entries");
-  trackerCache.clear();
+  categoryCache.clear();
+  expenseCache.clear();
   console.info("Cache cleanup completed");
 }

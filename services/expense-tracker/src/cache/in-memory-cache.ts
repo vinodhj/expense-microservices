@@ -72,5 +72,6 @@ export class InMemoryCache<T> {
   }
 }
 
-// Create cache instances for each entity type
-export const trackerCache = new InMemoryCache<any>(15 * 60); // 15 minutes TTL
+// Dedicated cache instances for expense-related data
+export const categoryCache = new InMemoryCache<any>(15 * 60); // 15 minutes TTL
+export const expenseCache = new InMemoryCache<any>(10 * 60); // 10 minutes TTL

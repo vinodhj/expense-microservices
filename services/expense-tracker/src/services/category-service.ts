@@ -9,7 +9,7 @@ import {
 } from "generated";
 import { SessionUserType } from ".";
 import { CategoryDataSource } from "@src/datasources/category-datasources";
-import { trackerCache } from "@src/cache/in-memory-cache";
+import { categoryCache } from "@src/cache/in-memory-cache";
 
 export class CategoryServiceAPI {
   private readonly categoryDataSource: CategoryDataSource;
@@ -30,7 +30,7 @@ export class CategoryServiceAPI {
 
   async createCategory(input: CreateCategoryInput): Promise<CategoryResponse> {
     // Clear cache for this category type when creating a new category
-    trackerCache.invalidateByPattern(`category:${input.category_type}`);
+    categoryCache.invalidateByPattern(`category:${input.category_type}`);
 
     const { category_type, name } = input;
     return await this.categoryDataSource.createCategory(category_type, name);
@@ -38,7 +38,7 @@ export class CategoryServiceAPI {
 
   async updateCategory(input: UpdateCategoryInput): Promise<CategoryResponse> {
     // Clear cache for this category type when updating a category
-    trackerCache.invalidateByPattern(`category:${input.category_type}`);
+    categoryCache.invalidateByPattern(`category:${input.category_type}`);
 
     const { category_type, id, name } = input;
     return await this.categoryDataSource.updateCategory({ category_type, name, id });
@@ -46,7 +46,7 @@ export class CategoryServiceAPI {
 
   async deleteCategory(input: DeleteCategoryInput): Promise<boolean> {
     // Clear cache for this category type when deleting a category
-    trackerCache.invalidateByPattern(`category:${input.category_type}`);
+    categoryCache.invalidateByPattern(`category:${input.category_type}`);
 
     const { category_type, id } = input;
     return await this.categoryDataSource.deleteCategory(category_type, id);
@@ -60,7 +60,7 @@ export class CategoryServiceAPI {
     const cacheKey = this.generateCacheKey(category_type, input);
 
     // Try to get from cache first
-    const cachedResult = trackerCache.get(cacheKey);
+    const cachedResult = categoryCache.get(cacheKey);
     if (cachedResult) {
       return cachedResult;
     }
@@ -68,7 +68,7 @@ export class CategoryServiceAPI {
     const result = await this.categoryDataSource.category({ category_type, search, id });
 
     // Store result in cache
-    trackerCache.set(cacheKey, result);
+    categoryCache.set(cacheKey, result);
 
     return result;
   }
