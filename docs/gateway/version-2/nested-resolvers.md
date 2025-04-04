@@ -166,6 +166,8 @@ export default {
 
 ### Extending Multiple Types
 
+**Example to add new extend types**
+
 You can extend multiple types with nested resolvers:
 
 ```typescript
@@ -175,8 +177,8 @@ You can extend multiple types with nested resolvers:
     user: User!
   }
   
-  extend type Project {
-    assignees: [User!]!
+  extend type User {
+    expenses: [ExpenseTracker!]!
   }
 `;
 ```
@@ -203,7 +205,7 @@ Use different loaders for different entity relationships:
 
 ```typescript
 context.usersLoader ??= createUsersLoader(context, info);
-context.projectsLoader ??= createProjectsLoader(context, info);
+context.expenseLoader ??= createExpenseLoader(context, info);
 ```
 
 ## Best Practices

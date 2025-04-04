@@ -512,6 +512,10 @@ const validateUser: ValidateUserFn<any> = ({ user, executionArgs }) => {
 
 ### 6.1. Circuit Breaker Pattern
 
+**Note: The Circuit Breaker Pattern implementation is currently disabled.**
+
+The system includes a Circuit Breaker Pattern implementation designed to prevent cascading failures when resolving nested entities. This pattern temporarily disables requests to failing services after detecting consistent errors, allowing the service time to recover. While this feature is implemented in the codebase, it is currently disabled pending further testing and configuration.
+
 ```mermaid
 stateDiagram-v2
     [*] --> Closed
