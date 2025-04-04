@@ -1319,6 +1319,10 @@ flowchart TB
     L --> M[Monitor]
 ```
 
+## References
+
+- [Cache Implementation - Expense Service API - Documentation (Expense Tracker)](cache-expense-services-api.md) - Contains detailed specifications for the expense tracker caching system.
+
 ## Conclusion
 
 The above schema and other information needs to be in alliance with the conventions present in the ADRs.
