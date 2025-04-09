@@ -342,7 +342,7 @@ export class ExpenseDataSource {
     const conditions: SQL[] = [];
 
     const afterDate = this.parseCursorDate(input.after);
-
+    conditions.push(eq(expenseTracker.is_disabled, false));
     if (sort === Sort.Asc) {
       conditions.push(gt(sortField, afterDate || new Date(0)));
     } else {
