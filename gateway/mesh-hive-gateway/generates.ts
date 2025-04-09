@@ -461,7 +461,7 @@ export type UserByFieldInput = {
 export type UserEdge = {
   __typename?: "UserEdge";
   cursor: Scalars["String"]["output"];
-  node: User;
+  node: UserResponse;
 };
 
 export type UserResponse = {

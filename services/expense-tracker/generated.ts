@@ -194,6 +194,7 @@ export type PageInfo = {
   __typename?: "PageInfo";
   endCursor?: Maybe<Scalars["String"]["output"]>;
   hasNextPage: Scalars["Boolean"]["output"];
+  totalCount: Scalars["Int"]["output"];
 };
 
 export type PaginatedExpenseInputs = {
@@ -643,6 +644,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 export type PageInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes["PageInfo"] = ResolversParentTypes["PageInfo"]> = {
   endCursor?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   hasNextPage?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
+  totalCount?: Resolver<ResolversTypes["Int"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

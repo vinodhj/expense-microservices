@@ -133,6 +133,7 @@ type ExpenseTrackerEdge @join__type(graph: EXPENSE_TRACKER) {
 type PageInfo @join__type(graph: EXPENSE_TRACKER) @join__type(graph: USER_SERVICE) {
   endCursor: String
   hasNextPage: Boolean!
+  totalCount: Int!
 }
 
 type ExpenseTrackerConnection @join__type(graph: EXPENSE_TRACKER) {

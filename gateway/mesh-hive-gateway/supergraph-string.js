@@ -163,6 +163,7 @@ export const supergraphSdl = /* GraphQL */ `
   type PageInfo @join__type(graph: EXPENSE_TRACKER) @join__type(graph: USER_SERVICE) {
     endCursor: String
     hasNextPage: Boolean!
+    totalCount: Int!
   }
 
   type ExpenseTrackerConnection @join__type(graph: EXPENSE_TRACKER) {

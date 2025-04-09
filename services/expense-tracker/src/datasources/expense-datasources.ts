@@ -13,7 +13,7 @@ import {
   Sort_By,
   UpdateExpenseTrackerInput,
 } from "generated";
-import { eq, inArray, asc, desc, SQLWrapper, gt, lt, gte, lte, and, SQL } from "drizzle-orm";
+import { eq, inArray, asc, desc, SQLWrapper, gt, lt, gte, lte, and, SQL, sql } from "drizzle-orm";
 import DataLoader from "dataloader";
 
 export class ExpenseDataSource {
@@ -100,7 +100,7 @@ export class ExpenseDataSource {
   }
 
   async paginatedExpenseTrackers(input: PaginatedExpenseInputs) {
-    const { after, sort_by = Sort_By.UpdatedAt } = input;
+    const { sort_by = Sort_By.UpdatedAt } = input;
     const sort = input.sort === Sort.Asc ? Sort.Asc : Sort.Desc;
 
     // Apply default and maximum page size limits from class constants
@@ -109,6 +109,14 @@ export class ExpenseDataSource {
     const sortField = sort_by === Sort_By.CreatedAt ? expenseTracker.created_at : expenseTracker.updated_at;
 
     try {
+      // Get total count of expenses
+      const totalCountResult = await this.db
+        .select({ count: sql<number>`count(*)` })
+        .from(expenseTracker)
+        .get();
+      console.log("totalCountResult", totalCountResult);
+      const totalCount = totalCountResult ? totalCountResult.count : 0;
+
       // Get where conditions based on input filters
       const whereCondition = this.buildExpenseWhereCondition(input, sortField, sort);
 
@@ -136,6 +144,7 @@ export class ExpenseDataSource {
         pageInfo: {
           endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null,
           hasNextPage,
+          totalCount,
         },
       };
     } catch (error: any) {

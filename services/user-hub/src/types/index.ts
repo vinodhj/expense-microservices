@@ -178,6 +178,7 @@ export const typeDefs = gql`
   type PageInfo {
     endCursor: String
     hasNextPage: Boolean!
+    totalCount: Int!
   }
 
   type UsersConnection {

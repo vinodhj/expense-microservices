@@ -1,7 +1,7 @@
 import DataLoader from "dataloader";
 import { GraphQLResolveInfo } from "graphql";
 import { HiveGatewayContext } from "./additional-resolvers";
-import { User, UserEdge, UsersConnection } from "generates";
+import { UserEdge, UserResponse, UsersConnection } from "generates";
 
 // Define the selection set for the paginatedUsers query
 const USER_SELECTION_SET = `{
@@ -27,17 +27,18 @@ const USER_SELECTION_SET = `{
   pageInfo {
     endCursor
     hasNextPage
+    totalCount
   }
 }`;
 
-export const createUsersLoader = (context: HiveGatewayContext, info: GraphQLResolveInfo): DataLoader<string, User | null> => {
+export const createUsersLoader = (context: HiveGatewayContext, info: GraphQLResolveInfo): DataLoader<string, UserResponse | null> => {
   const userServiceQuery = context.UserService.query || context.UserService.Query;
   if (!userServiceQuery?.paginatedUsers) {
     throw new Error("UserService does not have a valid paginatedUsers query method");
   }
 
-  return new DataLoader<string, User | null>(
-    async (userIds: readonly string[]): Promise<Array<User | null>> => {
+  return new DataLoader<string, UserResponse | null>(
+    async (userIds: readonly string[]): Promise<Array<UserResponse | null>> => {
       try {
         const uniqueIds = [...new Set(userIds)]; // Remove duplicates for efficiency
 
@@ -52,7 +53,7 @@ export const createUsersLoader = (context: HiveGatewayContext, info: GraphQLReso
         });
 
         // Create a map for O(1) lookups
-        const userMap = new Map<string, User>();
+        const userMap = new Map<string, UserResponse>();
 
         result?.edges?.forEach((edge: UserEdge) => {
           if (edge.node?.id) {

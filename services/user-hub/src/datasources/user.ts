@@ -59,6 +59,7 @@ export class UserDataSource {
         pageInfo: {
           endCursor: null,
           hasNextPage: false,
+          totalCount: users.length, // Todo: add total count
         },
       };
     } catch (error) {
@@ -130,6 +131,7 @@ export class UserDataSource {
         pageInfo: {
           endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null,
           hasNextPage,
+          totalCount: items.length, // Todo: add total count
         },
       };
     } catch (error: any) {
