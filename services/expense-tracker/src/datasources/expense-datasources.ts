@@ -109,16 +109,17 @@ export class ExpenseDataSource {
     const sortField = sort_by === Sort_By.CreatedAt ? expenseTracker.created_at : expenseTracker.updated_at;
 
     try {
+      // Get where conditions based on input filters
+      const whereCondition = this.buildExpenseWhereCondition(input, sortField, sort);
+
       // Get total count of expenses
       const totalCountResult = await this.db
         .select({ count: sql<number>`count(*)` })
         .from(expenseTracker)
+        .where(whereCondition)
         .get();
-      console.log("totalCountResult", totalCountResult);
-      const totalCount = totalCountResult ? totalCountResult.count : 0;
 
-      // Get where conditions based on input filters
-      const whereCondition = this.buildExpenseWhereCondition(input, sortField, sort);
+      const totalCount = totalCountResult ? totalCountResult.count : 0;
 
       // Execute the query with all conditions
       const result = await this.db
