@@ -49,7 +49,11 @@ export class ExpenseDataSource {
 
   async expenseByUserBatchIds(ids: string[]) {
     try {
-      const result = await this.db.select().from(expenseTracker).where(inArray(expenseTracker.user_id, ids)).execute();
+      const result = await this.db
+        .select()
+        .from(expenseTracker)
+        .where(and(inArray(expenseTracker.user_id, ids), eq(expenseTracker.is_disabled, false)))
+        .execute();
       if (!result) {
         return [];
       }
@@ -161,7 +165,11 @@ export class ExpenseDataSource {
 
   async expenseTrackerById(id: string) {
     try {
-      const result = await this.db.select().from(expenseTracker).where(eq(expenseTracker.id, id)).get();
+      const result = await this.db
+        .select()
+        .from(expenseTracker)
+        .where(and(eq(expenseTracker.id, id), eq(expenseTracker.is_disabled, false)))
+        .get();
 
       if (!result) {
         throw new GraphQLError(`Expense with id ${id} not found`, {
