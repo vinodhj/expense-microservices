@@ -1,5 +1,5 @@
 import DataLoader from "dataloader";
-import { ExpenseTracker, User } from "generates";
+import { ExpenseTracker, UserResponse } from "generates";
 import { GraphQLResolveInfo } from "graphql";
 import { createUsersLoader } from "./user-by-id-loader";
 
@@ -7,14 +7,14 @@ import { createUsersLoader } from "./user-by-id-loader";
 export interface HiveGatewayContext {
   UserService: any;
   ExpenseTracker: any;
-  usersLoader?: DataLoader<string, User | null>;
+  usersLoader?: DataLoader<string, UserResponse | null>;
   [key: string]: any;
 }
 
 export default {
   ExpenseTracker: {
     user: {
-      resolve: async (root: ExpenseTracker, _args: {}, context: HiveGatewayContext, info: GraphQLResolveInfo): Promise<User> => {
+      resolve: async (root: ExpenseTracker, _args: {}, context: HiveGatewayContext, info: GraphQLResolveInfo): Promise<UserResponse> => {
         const userId = root.user_id;
         if (!userId) {
           console.error(`Missing userId for expense: ${root.user_id || "unknown expense"}`);
