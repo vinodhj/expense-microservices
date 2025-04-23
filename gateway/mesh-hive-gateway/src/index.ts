@@ -1,7 +1,10 @@
 import { initializeGateway } from "./gateway";
 import { addCorsHeaders, handleCorsPreflight } from "./helper/worker-helper/cors-helper";
-import { checkRateLimit } from "./helper/worker-helper/rate-limit";
 import { disposeGateway, initializeRedis, processRequest } from "./helper/worker-helper/utilities";
+import { checkRateLimiting } from "./rate-limit";
+
+// Export the Rate Limiter class for Durable Objects to use
+export { RateLimiter } from "./helper/worker-helper/rate-limiter-durable-object";
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -17,8 +20,8 @@ export default {
       // Initialize Redis
       const redis = initializeRedis(env);
 
-      // Rate limiting check
-      const rateLimitResponse = await checkRateLimit({ request, redis, ctx, isDev });
+      // Check rate limits based on configuration
+      const rateLimitResponse = await checkRateLimiting(request, env, ctx, redis, isDev);
       if (rateLimitResponse) {
         return rateLimitResponse;
       }

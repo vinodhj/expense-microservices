@@ -29,6 +29,20 @@
       "preview_id": "169ce3c521764d2985966fbf48210db6",
     },
   ],
+  "migrations": [
+    {
+      "new_sqlite_classes": ["RateLimiter"],
+      "tag": "v1", // Should be unique for each migration
+    },
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "class_name": "RateLimiter",
+        "name": "RATE_LIMITER",
+      },
+    ],
+  },
   /**
    * Smart Placement
    * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
