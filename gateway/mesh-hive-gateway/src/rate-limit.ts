@@ -15,12 +15,12 @@ export async function checkRateLimiting(
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
-  }
-
-  // Check Redis rate limit
-  const redis_rateLimitResponse = await checkRateLimit({ request, redis, ctx, isDev });
-  if (redis_rateLimitResponse) {
-    return redis_rateLimitResponse;
+  } else {
+    // Check Redis rate limit
+    const redis_rateLimitResponse = await checkRateLimit({ request, redis, ctx, isDev });
+    if (redis_rateLimitResponse) {
+      return redis_rateLimitResponse;
+    }
   }
   return null;
 }
