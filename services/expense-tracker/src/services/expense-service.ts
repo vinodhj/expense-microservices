@@ -83,7 +83,7 @@ export class ExpenseServiceAPI {
       }
 
       // If not in cache, fetch from data source
-      const expenseTrackers = await this.expenseDataSource.paginatedExpenseTrackers(processedInput);
+      const expenseTrackers = await this.expenseDataSource.paginatedExpenseTrackers(args.session_id, processedInput);
       /**
        * The type assertion tells TypeScript to treat the object as the correct type,
        * while the nested resolvers will actually populate these fields(tags, modes & fynix) in the returned object.

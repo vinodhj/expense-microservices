@@ -103,7 +103,7 @@ export class ExpenseDataSource {
     }
   }
 
-  async paginatedExpenseTrackers(input: PaginatedExpenseInputs) {
+  async paginatedExpenseTrackers(session_id: string, input: PaginatedExpenseInputs) {
     const { sort_by = Sort_By.UpdatedAt } = input;
     const sort = input.sort === Sort.Asc ? Sort.Asc : Sort.Desc;
 
@@ -114,7 +114,7 @@ export class ExpenseDataSource {
 
     try {
       // Get where conditions based on input filters
-      const whereCondition = this.buildExpenseWhereCondition(input, sortField, sort);
+      const whereCondition = this.buildExpenseWhereCondition(session_id, input, sortField, sort);
 
       // Get total count of expenses
       const totalCountResult = await this.db
@@ -356,7 +356,7 @@ export class ExpenseDataSource {
   }
 
   // Helper to build WHERE conditions for expense tracker filtering
-  private buildExpenseWhereCondition(input: PaginatedExpenseInputs, sortField: any, sort: Sort): SQL | undefined {
+  private buildExpenseWhereCondition(session_id: string, input: PaginatedExpenseInputs, sortField: any, sort: Sort): SQL | undefined {
     const conditions: SQL[] = [];
 
     const afterDate = this.parseCursorDate(input.after);
@@ -366,6 +366,9 @@ export class ExpenseDataSource {
     } else {
       conditions.push(lt(sortField, afterDate || new Date()));
     }
+
+    // Filter by session user id
+    conditions.push(eq(expenseTracker.user_id, session_id));
 
     // Add filters for array-type fields
     this.addArrayFilters(conditions, input);
