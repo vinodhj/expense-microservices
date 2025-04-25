@@ -33,7 +33,7 @@ export class UserServiceAPI {
     input: InputMaybe<PaginatedUsersInputs> | undefined,
   ): Promise<UsersConnection> {
     // Validate access rights
-    validateUserAccess(this.sessionUser, {});
+    validateUserAccess(this.sessionUser, {}, true);
 
     const processedInput = input ?? {
       first: 10,
